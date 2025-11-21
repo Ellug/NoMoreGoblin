@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class DashState : PlayerState
+public class PlayerDashState : PlayerState
 {
     private Vector2 _dir;
     private Vector2 _dashTarget;
     private bool _hasDashed = false;
     
-    public DashState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerDashState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
 
     public override void Enter()
     {

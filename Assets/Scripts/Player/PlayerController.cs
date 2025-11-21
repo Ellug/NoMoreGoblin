@@ -31,21 +31,20 @@ public class PlayerController : MonoBehaviour
     public float AttackRange => _attackRange;
     public float AttackDamage => _attackDamage;
     public float AttackSpeed => _attackSpeed;
-
     public bool CanAttack { get; set; } = true;
-
     public bool DashPressed { get; set; }
     public bool CanDash { get; set; }
     public bool IsDashing { get; set; }
+    public bool BuildPressed { get; set; }
 
     public Rigidbody2D Rb => _rb;
     public Animator Anim => _anim;
 
     // States
-    public MoveState MoveState { get; private set; }
-    public AttackState AttackState { get; private set; }
-    public DashState DashState { get; private set; }
-    public BuildState BuildState { get; private set; }
+    public PlayerMoveState MoveState { get; private set; }
+    public PlayerAttackState AttackState { get; private set; }
+    public PlayerDashState DashState { get; private set; }
+    public PlayerBuildState BuildState { get; private set; }
 
     private PlayerStateMachine _fsm;
 
@@ -56,10 +55,10 @@ public class PlayerController : MonoBehaviour
 
         _fsm = new PlayerStateMachine();
 
-        MoveState = new MoveState(this, _fsm);
-        AttackState = new AttackState(this, _fsm);
-        DashState = new DashState(this, _fsm);
-        BuildState = new BuildState(this, _fsm);
+        MoveState = new PlayerMoveState(this, _fsm);
+        AttackState = new PlayerAttackState(this, _fsm);
+        DashState = new PlayerDashState(this, _fsm);
+        BuildState = new PlayerBuildState(this, _fsm);
     }
 
     void Start()
@@ -102,6 +101,12 @@ public class PlayerController : MonoBehaviour
             DashPressed = true;
         else
             DashPressed = false;
+    }
+
+    public void OnBuildMode(InputAction.CallbackContext ctx)
+    {
+        if (ctx.performed)
+            BuildPressed = true;
     }
 
     // Move Logics

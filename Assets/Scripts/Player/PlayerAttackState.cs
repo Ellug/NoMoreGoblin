@@ -1,13 +1,13 @@
 using UnityEngine;
 
-public class AttackState : PlayerState
+public class PlayerAttackState : PlayerState
 {
     private float _timer = 0f;
     private const float BaseAttackDuration = 0.75f;
     private float _attackCoolDown;
     private float _attackDuration;
 
-    public AttackState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerAttackState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
 
     public override void Enter()
     {

@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class MoveState : PlayerState
+public class PlayerMoveState : PlayerState
 {
-    public MoveState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerMoveState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
 
     public override void UpdateLogic()
     {
@@ -24,6 +24,13 @@ public class MoveState : PlayerState
             if (_player.MoveInput == Vector2.zero) return;
 
             _fsm.ChangeState(_player.DashState);
+            return;
+        }
+
+        // 빌드 상태
+        if (_player.BuildPressed)
+        {
+            _fsm.ChangeState(_player.BuildState);
             return;
         }
     }
