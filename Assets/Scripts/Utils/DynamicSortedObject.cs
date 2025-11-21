@@ -2,17 +2,38 @@ using UnityEngine;
 
 public class DynamicSortedObject : MonoBehaviour
 {
-    public SpriteRenderer _sr { get; private set; }
+    public SpriteRenderer Sr { get; private set; }
+    private bool _isRegistered = false;
 
     private void Awake()
     {
-        _sr = GetComponent<SpriteRenderer>();
-        SortManager.Instance.RegisterDynamic(this);
+        Sr = GetComponent<SpriteRenderer>();
+    }
+
+    private void OnEnable()
+    {
+        if (!_isRegistered && SortManager.Instance != null)
+        {
+            SortManager.Instance.RegisterDynamic(this);
+            _isRegistered = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_isRegistered && SortManager.Instance != null)
+        {
+            SortManager.Instance.UnregisterDynamic(this);
+            _isRegistered = false;
+        }
     }
 
     private void OnDestroy()
     {
-        if (SortManager.Instance != null)
+        if (_isRegistered && SortManager.Instance != null)
+        {
             SortManager.Instance.UnregisterDynamic(this);
+            _isRegistered = false;
+        }
     }
 }

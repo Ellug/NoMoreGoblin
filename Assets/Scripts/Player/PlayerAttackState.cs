@@ -65,6 +65,9 @@ public class PlayerAttackState : PlayerState
 
             if (hit.collider.TryGetComponent(out TreeObj tree))
                 tree.TakeDamage(_player.AttackDamage, _player);
+
+            if (hit.collider.TryGetComponent(out GoblinBase gb))
+                gb.TakeDamage(_player.AttackDamage);
         }
     }
 }

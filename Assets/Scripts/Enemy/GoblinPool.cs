@@ -10,7 +10,7 @@ public class GoblinPool : MonoBehaviour
 
     private Queue<Goblin> _pool = new Queue<Goblin>();
 
-    private void Awake()
+    void Awake()
     {
         if (Instance == null)
             Instance = this;
@@ -38,6 +38,7 @@ public class GoblinPool : MonoBehaviour
             AddGoblin();
 
         Goblin goblin = _pool.Dequeue();
+        goblin.ResetGoblin();
         goblin.gameObject.SetActive(true);
         return goblin;
     }

@@ -43,7 +43,7 @@ public class SortManager : MonoBehaviour
         foreach (var obj in dynamicList)
         {
             if (obj == null) continue;
-            ApplySorting(obj._sr);
+            ApplySorting(obj.Sr);
         }
     }
 

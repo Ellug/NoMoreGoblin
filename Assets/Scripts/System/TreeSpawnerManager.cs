@@ -54,7 +54,12 @@ public class TreeSpawnerManager : MonoBehaviour
             if (!IsFarEnough(randomWorld)) continue;
 
             Vector3 spawnPos = _groundTilemap.CellToWorld(cell) + new Vector3(0.5f, 0.5f, 0);
-            Instantiate(_treePrefab, spawnPos, Quaternion.identity, transform);
+            // Instantiate(_treePrefab, spawnPos, Quaternion.identity, transform);
+            var tree = Instantiate(_treePrefab, spawnPos, Quaternion.identity, transform);
+            tree.GetComponent<TreeObj>().Init(_collisionTilemap, cell);
+
+            // 타일맵에 충돌 표시
+            _collisionTilemap.SetTile(cell, ScriptableObject.CreateInstance<Tile>());
 
             _spawnedPositions.Add(spawnPos);
         }

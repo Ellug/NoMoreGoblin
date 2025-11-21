@@ -4,13 +4,18 @@ public class GoblinSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
     [SerializeField] private int _spawnCount = 2;
-    [SerializeField] private float _interval = 10f;
-    [SerializeField] private Vector2 _spawnAreaSize = new Vector2(30f, 30f);
-    [SerializeField] private Transform _spawnPoint;
-
+    [SerializeField] private float _interval = 15f;
+    [SerializeField] private float _spawnRadius = 30f;
+    
     private float _timer;
+    private GoblinBase _goblinBase;
 
-    private void Update()
+    void Awake()
+    {
+        _goblinBase = GetComponent<GoblinBase>();
+    }
+
+    void Update()
     {
         _timer += Time.deltaTime;
 
@@ -29,14 +34,22 @@ public class GoblinSpawner : MonoBehaviour
 
     private void SpawnOne()
     {
-        Vector2 randomPos = new Vector2(
-            Random.Range(-_spawnAreaSize.x / 2, _spawnAreaSize.x / 2),
-            Random.Range(-_spawnAreaSize.y / 2, _spawnAreaSize.y / 2)
-        );
+        // 랜덤 방향, 반경
+        Vector2 dir = Random.insideUnitCircle.normalized;
+        float dist = Random.Range(0f, _spawnRadius);
 
-        Vector3 worldPos = _spawnPoint.position + (Vector3)randomPos;
+        Vector3 spawnPos = _goblinBase.transform.position + (Vector3)(dir * dist);
 
         Goblin goblin = GoblinPool.Instance.GetGoblin();
-        goblin.transform.position = worldPos;
+        goblin.SetOriginBase(_goblinBase);
+        _goblinBase.OnGoblinSpawned();
+
+        goblin.transform.position = spawnPos;
+    }
+
+    public void IncreaseSpawnCount(int amount)
+    {
+        _spawnCount += amount;
+        _spawnRadius += 5f;
     }
 }
