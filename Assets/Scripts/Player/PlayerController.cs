@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     public float DashDistance => _dashDistance;
     public float DashCoolDown => _dashCoolDown;
     public Vector2 MoveInput => _moveInput;
+    public bool IsFacingRight => _isFacingRight;
     public bool AttackPressed { get; set; }
     public float AttackCoolDown => _attackCoolDown;
     public float AttackRange => _attackRange;
