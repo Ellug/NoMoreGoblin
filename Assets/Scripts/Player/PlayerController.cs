@@ -5,48 +5,176 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Stats")]
+    [SerializeField] private float _hp = 100f;
     [SerializeField] private float _moveSpeed = 5f;
-    // [SerializeField] private float _hp = 100f;
-    // [SerializeField] private float _atk = 1f;
-    // [SerializeField] private float _atkDelay = 1f;
+    [SerializeField] private float _dashDistance = 5f;
+    [SerializeField] private float _dashCoolDown = 5f;
+    [SerializeField] private float _attackDamage = 1f;
+    [SerializeField] private float _attackCoolDown = 0.8f;
+    [SerializeField] private float _attackRange = 1.5f;
+    [SerializeField] private float _attackSpeed = 1f;
     
-    private Vector2 _moveInput;
+    // Components
     private Rigidbody2D _rb;
+    private Animator _anim;
 
-    private void Awake()
+    // Internal
+    private Vector2 _moveInput;
+    private bool _isFacingRight = true;
+
+    // Properties
+    public float DashDistance => _dashDistance;
+    public float DashCoolDown => _dashCoolDown;
+    public Vector2 MoveInput => _moveInput;
+    public bool AttackPressed { get; set; }
+    public float AttackCoolDown => _attackCoolDown;
+    public float AttackRange => _attackRange;
+    public float AttackDamage => _attackDamage;
+    public float AttackSpeed => _attackSpeed;
+
+    public bool CanAttack { get; set; } = true;
+
+    public bool DashPressed { get; set; }
+    public bool CanDash { get; set; }
+    public bool IsDashing { get; set; }
+
+    public Rigidbody2D Rb => _rb;
+    public Animator Anim => _anim;
+
+    // States
+    public MoveState MoveState { get; private set; }
+    public AttackState AttackState { get; private set; }
+    public DashState DashState { get; private set; }
+    public BuildState BuildState { get; private set; }
+
+    private PlayerStateMachine _fsm;
+
+    void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+        _anim = GetComponent<Animator>();
+
+        _fsm = new PlayerStateMachine();
+
+        MoveState = new MoveState(this, _fsm);
+        AttackState = new AttackState(this, _fsm);
+        DashState = new DashState(this, _fsm);
+        BuildState = new BuildState(this, _fsm);
     }
 
-    private void FixedUpdate()
+    void Start()
     {
-        Move();
+        CanDash = true;
+        _fsm.Initialize(MoveState);
     }
 
-    private void Move()
+    void Update()
     {
+        _fsm.CurrentState.UpdateLogic();
+    }
+
+    void FixedUpdate()
+    {
+        _fsm.CurrentState.UpdatePhysics();
+    }
+
+    // Input
+    public void OnMove(InputAction.CallbackContext ctx)
+    {
+        _moveInput = ctx.ReadValue<Vector2>();
+    }
+
+    public void OnAttack(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed) return;
+
+        if (CanAttack)
+            AttackPressed = true;
+        else
+            AttackPressed = false;
+    }
+
+    public void OnDash(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed) return;
+
+        if (CanDash && MoveInput != Vector2.zero)
+            DashPressed = true;
+        else
+            DashPressed = false;
+    }
+
+    // Move Logics
+    public void Move()
+    {
+        bool isRunning = _moveInput.sqrMagnitude > 0.1f;
+        _anim.SetBool("isRunning", isRunning);
+
         if (_moveInput == Vector2.zero) return;
 
-        Debug.Log("인풋감지");
         Vector2 next = _moveInput * _moveSpeed * Time.fixedDeltaTime;
         _rb.MovePosition(_rb.position + next);
+
+        HandleFlip();
     }
 
-    public void OnMove(InputAction.CallbackContext context)
+    private void HandleFlip()
     {
-        _moveInput = context.ReadValue<Vector2>();
+        if (_moveInput.x > 0 && !_isFacingRight)
+            Flip(true);
+        else if (_moveInput.x < 0 && _isFacingRight)
+            Flip(false);
     }
 
-    public void OnAttack(InputAction.CallbackContext context)
+    private void Flip(bool facingRight)
     {
-        if (context.performed)
-        {
-            Attack();
-        }
+        if (_isFacingRight == facingRight) return;
+
+        _isFacingRight = facingRight;
+
+        // Flip 하기 전 위치 보존
+        Vector3 pos = transform.position;
+
+        // Flip
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
+        transform.localScale = scale;
+
+        // 중앙 어긋남 조정을 위한 보정값 적용
+        float offset = 1.2f;
+        pos.x += facingRight ? offset : -offset;
+        transform.position = pos;
     }
 
-    private void Attack()
+    // Attack CoolDown for Invoke
+    public void ResetAttack()
     {
-        Debug.Log("Player Attack");
+        CanAttack = true;
+    }
+
+    // Dash End & CoolDown for Invoke
+    public void EndDash()
+    {
+        IsDashing = false;
+    }
+
+    public void ResetDash()
+    {
+        CanDash = true;
+    }
+
+    // Take Damage
+    public void TakeDamage(float dmg)
+    {
+        if (_hp > 0)
+            _hp -= dmg;
+
+        if (_hp <= 0)
+            Die();
+    }
+
+    private void Die()
+    {
+        Debug.Log("Player is Dead");
     }
 }
