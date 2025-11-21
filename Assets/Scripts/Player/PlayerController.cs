@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _attackCoolDown = 0.8f;
     [SerializeField] private float _attackRange = 1.5f;
     [SerializeField] private float _attackSpeed = 1f;
+    [SerializeField] private float _maxExp = 50f;
     
     // Components
     private Rigidbody2D _rb;
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour
     // Internal
     private Vector2 _moveInput;
     private bool _isFacingRight = true;
+    private float _curExp = 0f;
 
     // Properties
     public float DashDistance => _dashDistance;
@@ -177,6 +179,19 @@ public class PlayerController : MonoBehaviour
 
         if (_hp <= 0)
             Die();
+    }
+
+    public void AddExp(float exp)
+    {
+        _curExp += exp;
+
+        if(_curExp >= _maxExp)
+        {
+            // 레벨업 로직
+            _maxExp += 10f;
+
+            // 게임 일시정지 후 랜덤 스탯 선택 UI 출력
+        }
     }
 
     private void Die()

@@ -61,10 +61,10 @@ public class PlayerAttackState : PlayerState
         foreach (var hit in hits)
         {
             if (hit.collider.TryGetComponent(out Goblin goblin))
-                goblin.TakeDamage(_player.AttackDamage);
+                goblin.TakeDamage(_player.AttackDamage, _player);
 
-            if (hit.collider.TryGetComponent(out Tree tree))
-                tree.TakeDamage(_player.AttackDamage);
+            if (hit.collider.TryGetComponent(out TreeObj tree))
+                tree.TakeDamage(_player.AttackDamage, _player);
         }
     }
 }

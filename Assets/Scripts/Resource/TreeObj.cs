@@ -1,11 +1,9 @@
 using UnityEngine;
 
-public class Goblin : MonoBehaviour
+public class TreeObj : MonoBehaviour
 {
     [SerializeField] private float _maxHp = 10f;
-    [SerializeField] private float _dmg = 1f;
-    [SerializeField] private float _moveSpeed = 5f;
-    [SerializeField] private float _exp = 3f;
+    [SerializeField] private float _exp = 1f;
     private float _curHp;
 
     void Awake()
@@ -22,9 +20,8 @@ public class Goblin : MonoBehaviour
 
     private void Die(PlayerController attacker)
     {
-        // 풀링으로 리턴
-        GoblinPool.Instance.ReturnGoblin(this);
-        // 경험치 get
         attacker.AddExp(_exp);
+        // 목재 획득 추가 필요
+        Destroy(gameObject);
     }
 }
