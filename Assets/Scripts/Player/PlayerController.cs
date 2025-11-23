@@ -2,18 +2,22 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 {
     [Header("Stats")]
-    [SerializeField] private float _hp = 100f;
+    [SerializeField] private float _maxHp = 100f;
+    [SerializeField] private float _curHp;
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _dashDistance = 5f;
     [SerializeField] private float _dashCoolDown = 5f;
     [SerializeField] private float _attackDamage = 1f;
     [SerializeField] private float _attackCoolDown = 0.8f;
-    [SerializeField] private float _attackRange = 1.5f;
+    [SerializeField] private float _attackRange = 2.5f;
     [SerializeField] private float _attackSpeed = 1f;
     [SerializeField] private float _maxExp = 50f;
+    [SerializeField] private float _curExp = 0f;
+
+    public DamageableType Type => DamageableType.Player;
     
     // Components
     private Rigidbody2D _rb;
@@ -22,7 +26,6 @@ public class PlayerController : MonoBehaviour
     // Internal
     private Vector2 _moveInput;
     private bool _isFacingRight = true;
-    private float _curExp = 0f;
 
     // Properties
     public float DashDistance => _dashDistance;
@@ -62,6 +65,8 @@ public class PlayerController : MonoBehaviour
         AttackState = new PlayerAttackState(this, _fsm);
         DashState = new PlayerDashState(this, _fsm);
         BuildState = new PlayerBuildState(this, _fsm);
+
+        _curHp = _maxHp;
     }
 
     void Start()
@@ -172,12 +177,12 @@ public class PlayerController : MonoBehaviour
     }
 
     // Take Damage
-    public void TakeDamage(float dmg)
+    public void TakeDamage(float dmg, GameObject attacker = null)
     {
-        if (_hp > 0)
-            _hp -= dmg;
+        if (_curHp > 0)
+            _curHp -= dmg;
 
-        if (_hp <= 0)
+        if (_curHp <= 0)
             Die();
     }
 
@@ -188,7 +193,8 @@ public class PlayerController : MonoBehaviour
         if(_curExp >= _maxExp)
         {
             // 레벨업 로직
-            _maxExp += 10f;
+            _curExp -= _maxExp;
+            _maxExp += 5f;
 
             // 게임 일시정지 후 랜덤 스탯 선택 UI 출력
         }

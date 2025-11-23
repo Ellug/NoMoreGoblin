@@ -1,9 +1,11 @@
 using UnityEngine;
 
-public class GoblinBase : MonoBehaviour
+public class GoblinBase : MonoBehaviour, IDamageable
 {
     [SerializeField] private float _maxHp = 100f;
     [SerializeField] private float _curHp = 100;
+
+    public DamageableType Type => DamageableType.Enemy;
 
     public float spawnRadius = 30f;
     public int maxGoblinCount = 50;
@@ -20,7 +22,7 @@ public class GoblinBase : MonoBehaviour
         currentGoblinCount--;
     }
 
-    public void TakeDamage(float dmg)
+    public void TakeDamage(float dmg, GameObject attacker = null)
     {
         _curHp -= dmg;
 

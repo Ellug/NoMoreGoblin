@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4686764425874340260}
   - component: {fileID: 833170685339209079}
   - component: {fileID: 7254368747925341336}
+  - component: {fileID: 695964580969703188}
   - component: {fileID: 7669698778962498667}
   - component: {fileID: 6299564339878211538}
   - component: {fileID: -5461249977717515647}
@@ -131,6 +132,33 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: -0.1}
   m_Size: {x: 0.3, y: 0.4}
   m_Direction: 0
+--- !u!50 &695964580969703188
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206286574258025165}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 1
+  m_UseAutoMass: 0
+  m_Mass: 1000000
+  m_LinearDamping: 1000000
+  m_AngularDamping: 1000000
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
 --- !u!95 &7669698778962498667
 Animator:
   serializedVersion: 7
@@ -166,9 +194,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Goblin
   _maxHp: 5
+  _curHp: 0
   _dmg: 1
   _moveSpeed: 5
+  _detectRange: 25
+  _attackRange: 2.5
+  _attackCooldown: 1
   _exp: 3
+  target: {fileID: 0}
+  originBaseTrf: {fileID: 0}
 --- !u!114 &-5461249977717515647
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class TreeObj : MonoBehaviour
+public class TreeObj : MonoBehaviour, IDamageable
 {
     [SerializeField] private float _maxHp = 10f;
+    [SerializeField] private float _curHp;
     [SerializeField] private float _exp = 1f;
-    private float _curHp;
+
+    public DamageableType Type => DamageableType.Tree;
 
     private Tilemap _collisionTilemap;
     private Vector3Int _cellPos;
@@ -21,17 +23,20 @@ public class TreeObj : MonoBehaviour
         _cellPos = cellPos;
     }
 
-    public void TakeDamage(float dmg, PlayerController attacker)
+    public void TakeDamage(float dmg, GameObject attacker)
     {
         _curHp -= dmg;
         if (_curHp <= 0)
             Die(attacker);
     }
 
-    private void Die(PlayerController attacker)
+    private void Die(GameObject attacker)
     {
-        attacker.AddExp(_exp);
-        // 목재 획득 추가 필요
+        // 경험치 get - Player가 죽였을 때만
+        if (attacker.TryGetComponent<PlayerController>(out var player))
+            player.AddExp(_exp);
+
+        // TO DO: 목재 획득 추가 필요
 
         // 타일맵 충돌 제거
         if (_collisionTilemap != null)
