@@ -4,21 +4,13 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour, IDamageable
 {
-    [Header("Stats")]
-    [SerializeField] private float _maxHp = 100f;
-    [SerializeField] private float _curHp;
-    [SerializeField] private float _moveSpeed = 5f;
-    [SerializeField] private float _dashDistance = 5f;
-    [SerializeField] private float _dashCoolDown = 5f;
-    [SerializeField] private float _attackDamage = 1f;
-    [SerializeField] private float _attackCoolDown = 0.8f;
-    [SerializeField] private float _attackRange = 2.5f;
-    [SerializeField] private float _attackSpeed = 1f;
-    [SerializeField] private float _maxExp = 50f;
-    [SerializeField] private float _curExp = 0f;
-
     public DamageableType Type => DamageableType.Player;
-    
+
+    // MVC
+    [Header("MVC")]
+    [SerializeField] private PlayerModel _model;
+    [SerializeField] private PlayerView _view;
+
     // Components
     private Rigidbody2D _rb;
     private Animator _anim;
@@ -27,21 +19,23 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Vector2 _moveInput;
     private bool _isFacingRight = true;
 
-    // Properties
-    public float DashDistance => _dashDistance;
-    public float DashCoolDown => _dashCoolDown;
-    public Vector2 MoveInput => _moveInput;
-    public bool IsFacingRight => _isFacingRight;
+    // FSM에서 쓰는 런타임 상태 플래그
     public bool AttackPressed { get; set; }
-    public float AttackCoolDown => _attackCoolDown;
-    public float AttackRange => _attackRange;
-    public float AttackDamage => _attackDamage;
-    public float AttackSpeed => _attackSpeed;
     public bool CanAttack { get; set; } = true;
     public bool DashPressed { get; set; }
     public bool CanDash { get; set; }
     public bool IsDashing { get; set; }
     public bool BuildPressed { get; set; }
+
+    // Model에서 값 읽어오는 래퍼 프로퍼티
+    public float DashDistance => _model.DashDistance;
+    public float DashCoolDown => _model.DashCoolDown;
+    public float AttackCoolDown => _model.AttackCoolDown;
+    public float AttackRange => _model.AttackRange;
+    public float AttackDamage => _model.AttackDamage;
+    public float AttackSpeed => _model.AttackSpeed;
+    public Vector2 MoveInput => _moveInput;
+    public bool IsFacingRight => _isFacingRight;
 
     public Rigidbody2D Rb => _rb;
     public Animator Anim => _anim;
@@ -56,17 +50,30 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     void Awake()
     {
-        _rb = GetComponent<Rigidbody2D>();
+        _rb   = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
 
-        _fsm = new PlayerStateMachine();
+        // Model / View 참조 체크
+        if (_model == null)
+            Debug.LogError("PlayerController: Where is Your Model?");
+        if (_view == null)
+            Debug.LogWarning("PlayerController: Where is Your View?");
 
+        // Model 이벤트 구독 -> View 연결
+        if (_model != null)
+        {
+            _model.OnHpChanged  += ratio => _view?.UpdateHpBar(ratio);
+            _model.OnExpChanged += ratio => _view?.UpdateExpBar(ratio);
+            _model.OnDie += OnPlayerDie;
+            _model.OnLevelUp += OnPlayerLevelUp;
+        }
+
+        // FSM 초기화
+        _fsm = new PlayerStateMachine();
         MoveState = new PlayerMoveState(this, _fsm);
         AttackState = new PlayerAttackState(this, _fsm);
         DashState = new PlayerDashState(this, _fsm);
         BuildState = new PlayerBuildState(this, _fsm);
-
-        _curHp = _maxHp;
     }
 
     void Start()
@@ -94,21 +101,13 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void OnAttack(InputAction.CallbackContext ctx)
     {
         if (!ctx.performed) return;
-
-        if (CanAttack)
-            AttackPressed = true;
-        else
-            AttackPressed = false;
+        AttackPressed = CanAttack;
     }
 
     public void OnDash(InputAction.CallbackContext ctx)
     {
         if (!ctx.performed) return;
-
-        if (CanDash && MoveInput != Vector2.zero)
-            DashPressed = true;
-        else
-            DashPressed = false;
+        DashPressed = CanDash && MoveInput != Vector2.zero;
     }
 
     public void OnBuildMode(InputAction.CallbackContext ctx)
@@ -117,7 +116,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             BuildPressed = true;
     }
 
-    // Move Logics
+    // Move Logic
     public void Move()
     {
         bool isRunning = _moveInput.sqrMagnitude > 0.1f;
@@ -125,7 +124,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         if (_moveInput == Vector2.zero) return;
 
-        Vector2 next = _moveInput * _moveSpeed * Time.fixedDeltaTime;
+        // 이동 속도는 Model에서 가져옴
+        Vector2 next = _moveInput * _model.MoveSpeed * Time.fixedDeltaTime;
         _rb.MovePosition(_rb.position + next);
 
         HandleFlip();
@@ -145,27 +145,17 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         _isFacingRight = facingRight;
 
-        // Flip 하기 전 위치 보존
-        Vector3 pos = transform.position;
-
-        // Flip
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
         transform.localScale = scale;
-
-        // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 1.2f;
-        pos.x += facingRight ? offset : -offset;
-        transform.position = pos;
     }
 
-    // Attack CoolDown for Invoke
+    // Attack / Dash 쿨다운 관련 – FSM에서 호출
     public void ResetAttack()
     {
         CanAttack = true;
     }
 
-    // Dash End & CoolDown for Invoke
     public void EndDash()
     {
         IsDashing = false;
@@ -176,34 +166,31 @@ public class PlayerController : MonoBehaviour, IDamageable
         CanDash = true;
     }
 
-    // Take Damage
+    // IDamageable 전용. 실 로직은 Model에
     public void TakeDamage(float dmg, GameObject attacker = null)
     {
-        if (_curHp > 0)
-            _curHp -= dmg;
-
-        if (_curHp <= 0)
-            Die();
+        _model.TakeDamage(dmg);
     }
 
     public void AddExp(float exp)
     {
-        _curExp += exp;
-
-        if(_curExp >= _maxExp)
-        {
-            // 레벨업 로직
-            _curExp -= _maxExp;
-            _maxExp += 5f;
-
-            // 게임 일시정지 후 랜덤 스탯 선택 UI 출력
-        }
+        _model.AddExp(exp);
     }
 
-    private void Die()
+    // Model 이벤트 콜백
+    private void OnPlayerDie()
     {
-        Debug.Log("Player is Dead");
-        // 애니메이션 트리거
-        // 게임 오버 UI 출력
+        Debug.Log("PlayerController: Player is Dead");
+        _view.ShowDeath();
+
+        // TODO: FSM 정지, GameOver UI 호출 등
+    }
+
+    private void OnPlayerLevelUp()
+    {
+        Debug.Log("PlayerController: Level Up");
+        _view.ShowLevelUp();
+
+        // TODO: 게임 일시정지 후 랜덤 스탯 선택 UI 출력 등
     }
 }
