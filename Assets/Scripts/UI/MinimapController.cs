@@ -1,6 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MinimapController : MonoBehaviour
 {
@@ -12,18 +12,15 @@ public class MinimapController : MonoBehaviour
     [SerializeField] private RectTransform _viewRect;
     [SerializeField] private GameObject _treeDotPrefab;
     [SerializeField] private GameObject _buildingDotPrefab;
+    [SerializeField] private float _scanInterval = 1.5f;
 
     private Camera _cam;
     private Vector2 _confinerMin;
     private Vector2 _confinerMax;
-    // private Vector2 _confinerSize;
+    private WaitForSeconds _minimapScanDelay;
 
-    // === 아이콘 저장소 ===
     private Dictionary<TreeObj, RectTransform> _treeIcons = new Dictionary<TreeObj, RectTransform>();
     private Dictionary<Building, RectTransform> _buildingIcons = new Dictionary<Building, RectTransform>();
-
-    private float _scanTimer = 0f;
-    private const float ScanInterval = 2.0f; // 2초마다 업데이트
 
     void Start()
     {
@@ -31,30 +28,30 @@ public class MinimapController : MonoBehaviour
         _confinerMin = b.min;
         _confinerMax = b.max;
         _cam = Camera.main;
+        _minimapScanDelay = new WaitForSeconds(_scanInterval);
 
-        InitialScan();
+        StartCoroutine(ScanRoutine());
     }
 
     void Update()
     {
         UpdatePlayerDot();
         UpdateCameraRect();
-        UpdateMinimapIcons();
     }
 
-    private void InitialScan()
+    private IEnumerator ScanRoutine()
     {
-        foreach (TreeObj tree in FindObjectsOfType<TreeObj>())
-            AddTreeIcon(tree);
-
-        foreach (Building building in FindObjectsOfType<Building>())
-            AddBuildingIcon(building);
+        while (true)
+        {
+            UpdateMinimapIcons();
+            yield return _minimapScanDelay;
+        }
     }
 
     private void UpdateMinimapIcons()
     {
         // 트리 갱신
-        TreeObj[] allTrees = FindObjectsOfType<TreeObj>();
+        TreeObj[] allTrees = FindObjectsByType<TreeObj>(FindObjectsSortMode.None);
 
         // 새로 생긴 트리 추가
         foreach (var tree in allTrees)
@@ -65,11 +62,13 @@ public class MinimapController : MonoBehaviour
 
         // 사라진 트리 제거
         List<TreeObj> removedTrees = new List<TreeObj>();
+
         foreach (var kvp in _treeIcons)
         {
             if (kvp.Key == null)
                 removedTrees.Add(kvp.Key);
         }
+
         foreach (var t in removedTrees)
         {
             Destroy(_treeIcons[t].gameObject);
@@ -77,20 +76,24 @@ public class MinimapController : MonoBehaviour
         }
 
         // 건물 갱신
-        Building[] allBuildings = FindObjectsOfType<Building>();
+        Building[] allBuildings = FindObjectsByType<Building>(FindObjectsSortMode.None);
 
+        // 새로 생긴 건물 추가
         foreach (var b in allBuildings)
         {
             if (!_buildingIcons.ContainsKey(b))
                 AddBuildingIcon(b);
         }
 
+        // 사라진 건물 제거
         List<Building> removedBuildings = new List<Building>();
+
         foreach (var kvp in _buildingIcons)
         {
             if (kvp.Key == null)
                 removedBuildings.Add(kvp.Key);
         }
+
         foreach (var b in removedBuildings)
         {
             Destroy(_buildingIcons[b].gameObject);
@@ -101,9 +104,7 @@ public class MinimapController : MonoBehaviour
         UpdateIconPositions();
     }
 
-    // ------------------------------------------
     // 아이콘 생성
-    // ------------------------------------------
     private void AddTreeIcon(TreeObj tree)
     {
         RectTransform icon = Instantiate(_treeDotPrefab, _minimapArea).GetComponent<RectTransform>();
@@ -116,18 +117,20 @@ public class MinimapController : MonoBehaviour
         _buildingIcons.Add(building, icon);
     }
 
-    // ------------------------------------------
     // 위치 실시간 갱신
-    // ------------------------------------------
     private void UpdateIconPositions()
     {
         foreach (var kvp in _treeIcons)
+        {            
             if (kvp.Key != null)
                 kvp.Value.anchoredPosition = WorldToMinimap(kvp.Key.transform.position);
+        }
 
         foreach (var kvp in _buildingIcons)
+        {            
             if (kvp.Key != null)
                 kvp.Value.anchoredPosition = WorldToMinimap(kvp.Key.transform.position);
+        }
     }
 
     private Vector2 WorldToMinimap(Vector3 worldPos)
