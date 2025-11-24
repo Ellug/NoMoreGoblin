@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BarrackData
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Barrack
-  size: {x: 20, y: 21}
-  woodCost: 0
-  prefab: {fileID: 3654512531550199589, guid: 764da16f3b60eb242916f71242d6d5aa, type: 3}
-  previewPrefab: {fileID: 0}
+  size: {x: 13, y: 13}
+  woodCost: 8
+  prefab: {fileID: 3557610736383461273, guid: 93632d4120160d84b9ce974d453e3402, type: 3}
+  previewPrefab: {fileID: 3557610736383461273, guid: dea3faae125bb384390d05c41f3ca89c, type: 3}

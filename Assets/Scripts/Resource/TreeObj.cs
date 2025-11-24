@@ -36,7 +36,19 @@ public class TreeObj : MonoBehaviour, IDamageable
         if (attacker.TryGetComponent<PlayerController>(out var player))
             player.AddExp(_exp);
 
-        // TO DO: 목재 획득 추가 필요
+        // 목재 획득 1~3 랜덤
+        int woodGain = Random.Range(1, 4);
+        ResourceManager.Instance.AddWood(woodGain);
+
+        // 획득 플로팅 텍스트
+        Vector3 textPos = transform.position + Vector3.up * 1f;
+        FloatingTextManager.Instance.ShowText(
+            $"Wood +{woodGain}",
+            textPos,
+            Color.skyBlue,
+            40f,
+            1.2f
+        );
 
         // 타일맵 충돌 제거
         if (_collisionTilemap != null)

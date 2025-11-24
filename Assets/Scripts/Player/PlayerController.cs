@@ -203,5 +203,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Die()
     {
         Debug.Log("Player is Dead");
+        // 애니메이션 트리거
+        // 게임 오버 UI 출력
     }
 }

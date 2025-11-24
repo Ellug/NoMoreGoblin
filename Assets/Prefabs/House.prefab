@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2644102367573554934}
   m_Layer: 6
   m_Name: House
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -127,7 +127,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.375885, y: 16.0537}
+  m_Offset: {x: 0, y: 15}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0}
@@ -137,7 +137,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 35.59677, y: 28.603857}
+  m_Size: {x: 35, y: 26}
   m_EdgeRadius: 0
 --- !u!114 &-4770869353736446578
 MonoBehaviour:
@@ -151,6 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93be21e1db46d9f4eaa6d8aebff4d7d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
+  _maxHp: 50
+  _curHp: 0
   data: {fileID: 11400000, guid: 16fe00816bf1fa64a9c43d8875bbf254, type: 2}
 --- !u!114 &2644102367573554934
 MonoBehaviour:

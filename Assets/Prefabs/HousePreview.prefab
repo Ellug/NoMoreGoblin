@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4154075351071747946}
   - component: {fileID: 5698902181923538407}
-  - component: {fileID: -4770869353736446578}
   m_Layer: 0
   m_Name: HousePreview
   m_TagString: Untagged
@@ -91,16 +90,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-4770869353736446578
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3654512531550199589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93be21e1db46d9f4eaa6d8aebff4d7d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Building
-  data: {fileID: 11400000, guid: 16fe00816bf1fa64a9c43d8875bbf254, type: 2}

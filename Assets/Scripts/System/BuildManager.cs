@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 
@@ -64,7 +65,6 @@ public class BuildManager : MonoBehaviour
         if (!IsBuildMode) return;
 
         _selectedBuilding = building;
-        Debug.Log($"{building.buildingName} 선택됨");
 
         // 기존 프리뷰 제거
         if (_previewObject != null) Destroy(_previewObject);
@@ -74,18 +74,26 @@ public class BuildManager : MonoBehaviour
     }
 
 
+    // Bottom-Center 기준
     private void FollowMousePreview()
     {
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        mouseWorld.z = 0;
+        mouseWorld.z = 0f;
 
-        Vector3Int cellPos = _grid.WorldToCell(mouseWorld);
+        // 건물 하단 중앙 타일
+        Vector3Int centerCell = _grid.WorldToCell(mouseWorld);
 
-        Vector3 worldCenter = _grid.CellToWorld(cellPos) + new Vector3(0.5f, 0.5f, 0);
-        _previewObject.transform.position = worldCenter;
+        // 좌측 하단 타일로 변환
+        Vector3Int bottomLeftCell = GetBottomLeftCell(centerCell, _selectedBuilding.size);
+
+        // Bottom-Center pivot 기준 월드 위치 계산
+        Vector3 bottomLeftWorld = _grid.CellToWorld(bottomLeftCell);
+        Vector3 pivotWorldPos = bottomLeftWorld + new Vector3(_selectedBuilding.size.x * 0.5f, 0f, 0f);
+
+        _previewObject.transform.position = pivotWorldPos;
 
         // 설치 가능 여부에 따라 색 변경
-        bool canPlace = CanPlace(cellPos);
+        bool canPlace = CanPlace(centerCell);
         SetPreviewColor(canPlace);
     }
 
@@ -93,42 +101,59 @@ public class BuildManager : MonoBehaviour
     {
         var sr = _previewObject.GetComponent<SpriteRenderer>();
 
-        if (canBuild)
-            sr.color = new Color(0, 1, 0, 0.5f);    // 초록색
-        else
-            sr.color = new Color(1, 0, 0, 0.5f);    // 빨간색
-    }
+        if (sr == null) return;
 
+        if (canBuild)
+            sr.color = new Color(0f, 1f, 0f, 0.5f);    // 초록색
+        else
+            sr.color = new Color(1f, 0f, 0f, 0.5f);    // 빨간색
+    }
 
     // 마우스 위치에서 설치 시도
-    public void TryPlaceBuilding(Vector3 pos)
+    public void TryPlaceBuilding(Vector3 worldPos)
     {
-        if (!IsBuildMode || _selectedBuilding == null) return;
+        // UI 클릭 중이면 설치 금지
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
 
-        Vector3Int cellPos = _grid.WorldToCell(pos);
-        
-        if (CanPlace(cellPos))
+        if (!IsBuildMode || _selectedBuilding == null) 
+            return;
+
+        // 비용 검사
+        if (!ResourceManager.Instance.TryConsume(_selectedBuilding.woodCost))
         {
-            Place(cellPos);
+            FloatingTextManager.Instance.ShowText(
+                "자원이 부족합니다.",
+                worldPos,
+                Color.red,
+                50f,
+                2f
+            );
+            return;
         }
+
+        Vector3Int centerCell = _grid.WorldToCell(worldPos);
+
+        if (CanPlace(centerCell))
+            Place(centerCell);
         else
-        {
             Debug.Log("설치 불가");
-        }            
     }
 
-    // 설치 가능 여부 확인
-    private bool CanPlace(Vector3Int cellPos)
+    // 설치 가능 여부 검사
+    private bool CanPlace(Vector3Int centerCell)
     {
-        int width = _selectedBuilding.size.x;
-        int height = _selectedBuilding.size.y;
+        Vector2Int size = _selectedBuilding.size;
+        Vector3Int bottomLeftCell = GetBottomLeftCell(centerCell, size);
 
-        // 좌측 하단 anchor 기준
+        int width = size.x;
+        int height = size.y;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                Vector3Int pos = cellPos + new Vector3Int(x, y, 0);
+                Vector3Int pos = bottomLeftCell + new Vector3Int(x, y, 0);
 
                 // 땅 타일이 없는 경우
                 if (!_groundTilemap.HasTile(pos))
@@ -143,17 +168,21 @@ public class BuildManager : MonoBehaviour
         return true;
     }
 
-    // 설치
-    private void Place(Vector3Int cellPos)
+    // 설치 실행
+    private void Place(Vector3Int centerCell)
     {
-        Vector3 worldPos = _grid.CellToWorld(cellPos);
-        worldPos += new Vector3(0.5f, 0.5f, 0); // 타일 중앙 정렬
+        Vector2Int size = _selectedBuilding.size;
+        Vector3Int bottomLeftCell = GetBottomLeftCell(centerCell, size);
+
+        // bottom-left 기준으로 pivot = Bottom-Center 위치 계산
+        Vector3 bottomLeftWorld = _grid.CellToWorld(bottomLeftCell);
+        Vector3 worldPos = bottomLeftWorld + new Vector3(size.x * 0.5f, 0f, 0f);
 
         Instantiate(_selectedBuilding.prefab, worldPos, Quaternion.identity);
 
-        // 충돌 타일맵에 해당 영역을 사용됨으로 표시
-        MarkCollision(cellPos);
-        
+        // 충돌 타일맵 채우기
+        MarkCollision(bottomLeftCell);
+
         // 프리뷰 제거
         if (_previewObject != null)
             Destroy(_previewObject);
@@ -162,8 +191,8 @@ public class BuildManager : MonoBehaviour
         _selectedBuilding = null;
     }
 
-    // 설치 구역 충돌 타일맵에 표시
-    private void MarkCollision(Vector3Int cellPos)
+    // 충돌 타일맵 채우기
+    private void MarkCollision(Vector3Int bottomLeftCell)
     {
         int width = _selectedBuilding.size.x;
         int height = _selectedBuilding.size.y;
@@ -174,9 +203,24 @@ public class BuildManager : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                Vector3Int pos = cellPos + new Vector3Int(x, y, 0);
+                Vector3Int pos = bottomLeftCell + new Vector3Int(x, y, 0);
                 _collisionTilemap.SetTile(pos, dummy);
             }
         }
+    }
+
+    /// 실제 타일 영역의 좌측 하단 타일을 계산
+    /// width 홀수로 정해야 안정적
+    private Vector3Int GetBottomLeftCell(Vector3Int centerCell, Vector2Int size)
+    {
+        int width = size.x;
+
+        // center 기준 왼쪽 계산
+        int halfLeft = (width - 1) / 2;
+
+        int originX = centerCell.x - halfLeft;
+        int originY = centerCell.y;
+
+        return new Vector3Int(originX, originY, centerCell.z);
     }
 }

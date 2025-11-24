@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HouseData
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: House
-  size: {x: 13, y: 15}
-  woodCost: 0
+  size: {x: 13, y: 13}
+  woodCost: 4
   prefab: {fileID: 3654512531550199589, guid: 764da16f3b60eb242916f71242d6d5aa, type: 3}
   previewPrefab: {fileID: 3654512531550199589, guid: 64b65890996e9d14fa44199564ed563e, type: 3}
