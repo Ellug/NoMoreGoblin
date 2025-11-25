@@ -6,6 +6,8 @@ public class Building : MonoBehaviour, IDamageable
     [SerializeField] float _curHp;
 
     public DamageableType Type => DamageableType.Building;
+    private bool _isAlive;
+    public bool IsAlive => _isAlive;
 
     public BuildingData data;
 
@@ -27,6 +29,9 @@ public class Building : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        // 건물 파괴 처리
+        // 건물 전체 관리 매니져 작성 후 통보 필요. 배럭도 Building이랑 같이 관리?
+
+        _isAlive = false;
+        Destroy(gameObject);
     }
 }

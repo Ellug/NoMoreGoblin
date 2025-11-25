@@ -8,6 +8,8 @@ public class TreeObj : MonoBehaviour, IDamageable
     [SerializeField] private float _exp = 1f;
 
     public DamageableType Type => DamageableType.Tree;
+    private bool _isAlive;
+    public bool IsAlive => _isAlive;
 
     private Tilemap _collisionTilemap;
     private Vector3Int _cellPos;
@@ -15,6 +17,7 @@ public class TreeObj : MonoBehaviour, IDamageable
     void Awake()
     {
         _curHp = _maxHp;
+        _isAlive = true;
     }
 
     public void Init(Tilemap collisionTilemap, Vector3Int cellPos)
@@ -53,7 +56,8 @@ public class TreeObj : MonoBehaviour, IDamageable
         // 타일맵 충돌 제거
         if (_collisionTilemap != null)
             _collisionTilemap.SetTile(_cellPos, null);
-            
+
+        _isAlive = false;  
         Destroy(gameObject);
     }
 }

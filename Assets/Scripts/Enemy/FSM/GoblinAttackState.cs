@@ -10,13 +10,18 @@ public class GoblinAttackState : GoblinState
     {
         _attackTimer = 0f;
         _goblin.targetPos = null;
+        _goblin.Anim.SetBool("IsRunning", false);
     }
 
     public override void UpdateLogic()
     {
-        if (_goblin.target == null)
+        // 대상이 없으면 Idle State
+        if (_goblin.target == null ||
+            !_goblin.target.gameObject.activeInHierarchy ||
+            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive)
+        )
         {
-            _fsm.ChangeState(_goblin.IdleState);
+            _goblin.SetIdleState();
             return;
         }
 
@@ -50,7 +55,7 @@ public class GoblinAttackState : GoblinState
                     dmged.TakeDamage(_goblin.Dmg, null);
                     break;
                 case DamageableType.Guard:
-                    dmged.TakeDamage(_goblin.Dmg, null);
+                    dmged.TakeDamage(_goblin.Dmg, _goblin.gameObject);
                     break;
             }
         }

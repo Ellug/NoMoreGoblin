@@ -1,4 +1,4 @@
-public class PlayerStateMachine
+public class PlayerFSM
 {
     public PlayerState CurrentState { get; private set; }
 
@@ -10,7 +10,7 @@ public class PlayerStateMachine
 
     public void ChangeState(PlayerState newState)
     {
-        CurrentState.Exit();
+        CurrentState?.Exit();
         CurrentState = newState;
         CurrentState.Enter();
     }

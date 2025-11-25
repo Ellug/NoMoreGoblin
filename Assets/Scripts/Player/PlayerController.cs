@@ -4,8 +4,6 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour, IDamageable
 {
-    public DamageableType Type => DamageableType.Player;
-
     // MVC
     [Header("MVC")]
     [SerializeField] private PlayerModel _model;
@@ -46,11 +44,15 @@ public class PlayerController : MonoBehaviour, IDamageable
     public PlayerDashState DashState { get; private set; }
     public PlayerBuildState BuildState { get; private set; }
 
-    private PlayerStateMachine _fsm;
+    private PlayerFSM _fsm;
+
+    public DamageableType Type => DamageableType.Player;
+    private bool _isAlive;
+    public bool IsAlive => _isAlive;
 
     void Awake()
     {
-        _rb   = GetComponent<Rigidbody2D>();
+        _rb = GetComponent<Rigidbody2D>();
         _anim = GetComponent<Animator>();
 
         // Model / View 참조 체크
@@ -69,11 +71,13 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
 
         // FSM 초기화
-        _fsm = new PlayerStateMachine();
+        _fsm = new PlayerFSM();
         MoveState = new PlayerMoveState(this, _fsm);
         AttackState = new PlayerAttackState(this, _fsm);
         DashState = new PlayerDashState(this, _fsm);
         BuildState = new PlayerBuildState(this, _fsm);
+
+        _isAlive = true;
     }
 
     void Start()
@@ -181,6 +185,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void OnPlayerDie()
     {
         Debug.Log("PlayerController: Player is Dead");
+        _isAlive = false;
         _view.ShowDeath();
 
         // TODO: FSM 정지, GameOver UI 호출 등

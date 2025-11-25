@@ -1,9 +1,9 @@
 public abstract class PlayerState
 {
     protected PlayerController _player;
-    protected PlayerStateMachine _fsm;
+    protected PlayerFSM _fsm;
 
-    public PlayerState(PlayerController player, PlayerStateMachine fsm)
+    public PlayerState(PlayerController player, PlayerFSM fsm)
     {
         _player = player;
         _fsm = fsm;

@@ -6,7 +6,7 @@ public class PlayerDashState : PlayerState
     private Vector2 _dashTarget;
     private bool _hasDashed = false;
     
-    public PlayerDashState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerDashState(PlayerController player, PlayerFSM fsm) : base(player, fsm) { }
 
     public override void Enter()
     {

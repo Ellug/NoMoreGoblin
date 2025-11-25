@@ -19,9 +19,9 @@ TagManager:
   - Wall
   - Tree
   - Enemy
-  - 
-  - 
-  - 
+  - Player
+  - NPC
+  - Building
   - 
   - 
   - 

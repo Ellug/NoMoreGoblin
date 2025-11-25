@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerMoveState : PlayerState
 {
-    public PlayerMoveState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerMoveState(PlayerController player, PlayerFSM fsm) : base(player, fsm) { }
 
     public override void UpdateLogic()
     {

@@ -18,6 +18,7 @@ public class Goblin : MonoBehaviour, IDamageable
     public Transform target;
     public Vector3? targetPos;
     public Transform originBaseTrf;
+    private bool _isAlive = false;
 
     // Internal
     private GoblinBase _originBase;
@@ -34,11 +35,15 @@ public class Goblin : MonoBehaviour, IDamageable
     public float Dmg => _dmg;
     public Rigidbody2D Rb => _rb;
     public Animator Anim => _anim;
+    public bool IsAlive => _isAlive;
+    // 일단 레이어 하드코딩
+    public int layers = (1 << 9) | (1 << 6) | (1 << 10);
 
     // FSM
     private GoblinFSM _fsm;
 
     public GoblinIdleState IdleState { get; private set; }
+    public GoblinPatrolState PatrolState { get; private set; }
     public GoblinChaseState ChaseState { get; private set; }
     public GoblinAttackState AttackState { get; private set; }
     public GoblinKidnapState KidnapState { get; private set; }
@@ -53,23 +58,26 @@ public class Goblin : MonoBehaviour, IDamageable
         _fsm = new GoblinFSM();
 
         IdleState = new GoblinIdleState(this, _fsm);
+        PatrolState = new GoblinPatrolState(this, _fsm);
         ChaseState = new GoblinChaseState(this, _fsm);
         AttackState = new GoblinAttackState(this, _fsm);
         KidnapState = new GoblinKidnapState(this, _fsm);
     }
 
     void Start()
-    {
+    {        
         _fsm.Initialize(IdleState);
     }
 
     void Update()
     {
+        if(!IsAlive) return;
         _fsm.CurrentState.UpdateLogic();
     }
 
     void FixedUpdate()
     {
+        if(!IsAlive) return;
         _fsm.CurrentState.UpdatePhysics();
     }    
 
@@ -81,6 +89,7 @@ public class Goblin : MonoBehaviour, IDamageable
         targetPos = null;
         originBaseTrf = null;
         _originBase = null;
+        _isAlive = true;
 
         _fsm.ChangeState(IdleState);
     }
@@ -92,44 +101,9 @@ public class Goblin : MonoBehaviour, IDamageable
 
     }
 
-    public void TakeDamage(float dmg, GameObject attacker)
-    {
-        if (_curHp <= 0) return;
-
-        if (attacker != null)
-            target = attacker.transform;
-
-        _curHp -= dmg;
-        targetPos = null;
-
-        if (_curHp <= 0)
-            Die(attacker);
-    }
-
-    private void Die(GameObject attacker)
-    {
-        _anim.SetTrigger("DeadTrigger");
-        _collider.enabled = false;
-
-        // 경험치 get - Player가 죽였을 때만
-        if (attacker.TryGetComponent<PlayerController>(out var player))
-            player.AddExp(_exp);
-
-        // 기지에 카운트 감소 처리
-        if (_originBase != null)
-            _originBase.OnGoblinReturned();
-
-        // 2초 후 풀링으로 리턴 for 시체 연출
-        Invoke(nameof(Despawn), 2f);
-    }
-
-    private void Despawn()
-    {
-        GoblinPool.Instance.ReturnGoblin(this);
-    }
-
+    
     // Move
-    public void Move()
+        public void Move()
     {
         if (_curHp <= 0) return;
 
@@ -143,29 +117,15 @@ public class Goblin : MonoBehaviour, IDamageable
         if (target != null)
             destination = target.position;
 
-        if (!destination.HasValue)
-        {
-            _anim.SetBool("IsRunning", false);
-            return;
-        }
+        if (!destination.HasValue) return;
 
         Vector3 dir = destination.Value - transform.position;
-        float dist = dir.sqrMagnitude;
-
-        // 타겟이 매우 가까우면 멈춤
-        if (dist < 0.1f)
-        {
-            _anim.SetBool("IsRunning", false);
-            return;
-        }
 
         // 이동
         dir.Normalize();
-        Vector2 dir2 = new Vector2(dir.x, dir.y);
-        _rb.MovePosition(_rb.position + dir2 * _moveSpeed * Time.fixedDeltaTime);
+        Vector2 v2Dir = new Vector2(dir.x, dir.y);
+        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * v2Dir);
 
-
-        _anim.SetBool("IsRunning", true);
         HandleFlip(dir.x);
     }
 
@@ -197,20 +157,80 @@ public class Goblin : MonoBehaviour, IDamageable
         transform.position = pos;
     }
 
-    // 타겟 감지
+    public void TakeDamage(float dmg, GameObject attacker)
+    {
+        if (_curHp <= 0) return;
+
+        if (attacker != null)
+            target = attacker.transform;
+
+        _curHp -= dmg;
+        targetPos = null;
+
+        if (_curHp <= 0)
+            Die(attacker);
+    }
+
+    private void Die(GameObject attacker)
+    {
+        _anim.SetTrigger("DeadTrigger");
+        _collider.enabled = false;
+        _isAlive = false;
+
+        // 경험치 get - Player가 죽였을 때만
+        if (attacker.TryGetComponent<PlayerController>(out var player))
+            player.AddExp(_exp);
+
+        // 기지에 카운트 감소 처리
+        if (_originBase != null)
+            _originBase.OnGoblinReturned();
+
+        // 2초 후 풀링으로 리턴 for 시체 연출
+        Invoke(nameof(Despawn), 2f);
+    }
+
+    private void Despawn()
+    {
+        GoblinPool.Instance.ReturnGoblin(this);
+    }
+
+    // 타겟 감지 (가장 가까운 적)
     public Transform DetectTarget()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _detectRange);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _detectRange, layers);
+
+        Transform nearest = null;
+        float nearestDist = float.MaxValue;
 
         foreach (var h in hits)
         {
-            if (h.CompareTag("Player") ||
+            if (!h.gameObject.activeInHierarchy) continue;
+            if (!h.TryGetComponent<IDamageable>(out var t) || !t.IsAlive) continue;
+
+            // 태그 필터
+            if (!(h.CompareTag("Player") ||
                 h.CompareTag("Guard") ||
-                h.CompareTag("Citizen"))
+                h.CompareTag("Citizen") ||
+                h.CompareTag("Building")))
+                continue;
+
+            float dist = Vector2.Distance(transform.position, h.transform.position);
+
+            if (dist < nearestDist)
             {
-                return h.transform;
+                nearestDist = dist;
+                nearest = h.transform;
             }
         }
-        return null;
+
+        return nearest;
+    }
+
+    // Idle State로 전환시 초기화 해야할 것들
+    public void SetIdleState()
+    {
+        target = null;
+        targetPos = null;
+        _fsm.ChangeState(IdleState);
     }
 }

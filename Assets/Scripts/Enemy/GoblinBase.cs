@@ -6,6 +6,8 @@ public class GoblinBase : MonoBehaviour, IDamageable
     [SerializeField] private float _curHp;
 
     public DamageableType Type => DamageableType.Enemy;
+    private bool _isAlive;
+    public bool IsAlive => _isAlive;
 
     public float spawnRadius = 30f;
     public int maxGoblinCount = 50;
@@ -15,6 +17,7 @@ public class GoblinBase : MonoBehaviour, IDamageable
     void Awake()
     {
         _curHp = _maxHp;
+        _isAlive = true;
     }
 
     public void OnGoblinSpawned()
@@ -42,6 +45,7 @@ public class GoblinBase : MonoBehaviour, IDamageable
         // 매니져에 통보
         GoblinBaseManager.Instance.OnBaseDestroyed(this);
 
+        _isAlive = false;
         Destroy(gameObject);
     }
 }

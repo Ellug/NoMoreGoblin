@@ -8,7 +8,7 @@ public class PlayerAttackState : PlayerState
     private float _attackDuration;
     private bool _hasAppliedDamage = false;
 
-    public PlayerAttackState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerAttackState(PlayerController player, PlayerFSM fsm) : base(player, fsm) { }
 
     public override void Enter()
     {

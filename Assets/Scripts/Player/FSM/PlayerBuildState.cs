@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerBuildState : PlayerState
 {
-    public PlayerBuildState(PlayerController player, PlayerStateMachine fsm) : base(player, fsm) { }
+    public PlayerBuildState(PlayerController player, PlayerFSM fsm) : base(player, fsm) { }
 
     public override void Enter()
     {

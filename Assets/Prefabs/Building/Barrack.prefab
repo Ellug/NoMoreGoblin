@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 4803767877648389387}
   - component: {fileID: 3828589095033787043}
   - component: {fileID: -8556141982794620365}
+  - component: {fileID: 7730436833534935141}
+  - component: {fileID: 8108373385324731240}
   m_Layer: 6
   m_Name: Barrack
   m_TagString: Building
@@ -166,3 +168,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9314313ba90cb4b449fef12d2302ee7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StaticSortedObject
+--- !u!114 &7730436833534935141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3557610736383461273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a21cc9a1ed3e24092ae27f63463c25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuardBarrack
+  _maxHp: 50
+  _curHp: 0
+  spawnRadius: 30
+  maxGuardCount: 8
+  currentGuardCount: 0
+--- !u!114 &8108373385324731240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3557610736383461273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b7569ef1e658d24882a48896d81fb2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuardSpawner
+  _spawnCount: 1
+  _interval: 15
+  _spawnRadius: 30
