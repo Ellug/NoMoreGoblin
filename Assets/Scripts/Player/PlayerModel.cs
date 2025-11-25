@@ -70,4 +70,31 @@ public class PlayerModel : MonoBehaviour
 
         OnExpChanged?.Invoke(_curExp / _maxExp);
     }
+
+    // 레벨업 강화 함수들
+    public void AddMoveSpeed(float amount)
+    {
+        _moveSpeed += amount;
+    }
+
+    public void AddAttackDamage(float amount)
+    {
+        _attackDamage += amount;
+    }
+
+    public void AddAttackSpeed(float amount)
+    {
+        _attackSpeed += amount;
+    }
+
+    public void AddAttackRange(float amount)
+    {
+        _attackRange += amount;
+    }
+    public void AddMaxHp(float amount)
+    {
+        _maxHp += amount;
+        _curHp += amount;
+    }
+
 }

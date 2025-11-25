@@ -158,7 +158,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         transform.localScale = scale;
 
         // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 0.6f;
+        float offset = 1.2f;
         pos.x += facingRight ? offset : -offset;
         transform.position = pos;
     }
@@ -202,9 +202,6 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void OnPlayerLevelUp()
     {
-        Debug.Log("PlayerController: Level Up");
-        _view.ShowLevelUp();
-
-        // TODO: 게임 일시정지 후 랜덤 스탯 선택 UI 출력 등
+        LevelupManager.Instance.RequestLevelup(_model);
     }
 }

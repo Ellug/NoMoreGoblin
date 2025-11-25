@@ -24,10 +24,4 @@ public class PlayerView : MonoBehaviour
         Debug.Log("PlayerView: Show death UI / animation");
         // TODO: 사망 애니메이션 / UI 표시
     }
-
-    public void ShowLevelUp()
-    {
-        Debug.Log("PlayerView: Show level up UI");
-        // TODO: 레벨업 효과 표시
-    }
 }
