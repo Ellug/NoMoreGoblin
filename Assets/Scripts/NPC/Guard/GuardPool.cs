@@ -41,8 +41,8 @@ public class GuardPool : MonoBehaviour
             AddGuard();
 
         GuardController guard = _pool.Dequeue();
-        guard.gameObject.SetActive(true);
         guard.ResetGuard();
+        guard.gameObject.SetActive(true);
         return guard;
     }
 

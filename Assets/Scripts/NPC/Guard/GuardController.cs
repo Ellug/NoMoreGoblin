@@ -134,14 +134,20 @@ public class GuardController : MonoBehaviour, IDamageable
 
         if (!destination.HasValue) return;
 
-        Vector3 dir = destination.Value - transform.position;
+        // Vector3 dir = destination.Value - transform.position;
+        // dir.Normalize();
+
+        // 회피 기동!
+        Vector2 desired = ((Vector2)(destination.Value - transform.position)).normalized;
+        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired, 0.5f, 1f, 0.3f);
+
+        // 최종 이동 방향
+        Vector2 finalDir = avoid.normalized;
 
         // 이동
-        dir.Normalize();
-        Vector2 v2Dir = new Vector2(dir.x, dir.y);
-        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * v2Dir);
+        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * finalDir);
 
-        HandleFlip(dir.x);
+        HandleFlip(finalDir.x);
     }
 
     private void HandleFlip(float moveX)

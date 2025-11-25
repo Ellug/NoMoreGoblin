@@ -149,9 +149,18 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         _isFacingRight = facingRight;
 
+        // Flip 하기 전 위치 보존
+        Vector3 pos = transform.position;
+
+        // Flip
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
         transform.localScale = scale;
+
+        // 중앙 어긋남 조정을 위한 보정값 적용
+        float offset = 0.6f;
+        pos.x += facingRight ? offset : -offset;
+        transform.position = pos;
     }
 
     // Attack / Dash 쿨다운 관련 – FSM에서 호출

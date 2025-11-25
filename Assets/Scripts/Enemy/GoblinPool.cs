@@ -38,8 +38,8 @@ public class GoblinPool : MonoBehaviour
             AddGoblin();
 
         Goblin goblin = _pool.Dequeue();
-        goblin.gameObject.SetActive(true);
         goblin.ResetGoblin();
+        goblin.gameObject.SetActive(true);
         return goblin;
     }
 

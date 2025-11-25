@@ -22,7 +22,15 @@ public class GoblinChaseState : GoblinState
         // Target 유효성 검사
         if (_goblin.target == null ||
             !_goblin.target.gameObject.activeInHierarchy ||
-            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive))
+            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive)
+        )
+        {
+            _goblin.SetIdleState();
+            return;
+        }
+
+        // 이미 다른 고블린에게 납치된 시민이면 추적 포기
+        if (_goblin.target.TryGetComponent<CitizenController>(out var citizen) && citizen.IsKidnapped)
         {
             _goblin.SetIdleState();
             return;
@@ -50,12 +58,15 @@ public class GoblinChaseState : GoblinState
         // 공격 사거리 안에 들어오면 공격 or 납치
         if (dist <= _goblin.AttackRange)
         {
+            // 시민이면 납치
             if (_goblin.target.CompareTag("Citizen"))
             {
+                _goblin.KidnapState.SetCitizen(citizen);
                 _fsm.ChangeState(_goblin.KidnapState);
                 return;
             }
 
+            // 얘넨 공격
             if (_goblin.target.CompareTag("Player") ||
                 _goblin.target.CompareTag("Guard") ||
                 _goblin.target.CompareTag("Building"))

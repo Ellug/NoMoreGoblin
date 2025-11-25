@@ -38,6 +38,7 @@ public class Goblin : MonoBehaviour, IDamageable
     public bool IsAlive => _isAlive;
     // 일단 레이어 하드코딩
     public int layers = (1 << 9) | (1 << 6) | (1 << 10);
+    public bool IsKidnapping { get; set; }
 
     // FSM
     private GoblinFSM _fsm;
@@ -100,10 +101,9 @@ public class Goblin : MonoBehaviour, IDamageable
         originBaseTrf = originBase.transform;
 
     }
-
     
     // Move
-        public void Move()
+    public void Move()
     {
         if (_curHp <= 0) return;
 
@@ -121,9 +121,13 @@ public class Goblin : MonoBehaviour, IDamageable
 
         Vector3 dir = destination.Value - transform.position;
 
-        // 이동
         dir.Normalize();
+
+        // 회피 기동!
         Vector2 v2Dir = new Vector2(dir.x, dir.y);
+        v2Dir = ObstacleAvoidance.GetAvoidDirection(transform, v2Dir, 0.5f, 10f, 1f);
+
+        // 이동
         _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * v2Dir);
 
         HandleFlip(dir.x);
@@ -206,6 +210,7 @@ public class Goblin : MonoBehaviour, IDamageable
         {
             if (!h.gameObject.activeInHierarchy) continue;
             if (!h.TryGetComponent<IDamageable>(out var t) || !t.IsAlive) continue;
+            if (h.TryGetComponent<CitizenController>(out var citizen) && citizen.IsKidnapped) continue;
 
             // 태그 필터
             if (!(h.CompareTag("Player") ||

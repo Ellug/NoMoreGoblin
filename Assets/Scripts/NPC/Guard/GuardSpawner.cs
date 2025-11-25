@@ -3,9 +3,9 @@ using UnityEngine;
 public class GuardSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [SerializeField] private int _spawnCount = 1;
     [SerializeField] private float _interval = 15f;
-    [SerializeField] private float _spawnRadius = 30f;
+    [SerializeField] private Transform _door;
+    
     
     private float _timer;
     private GuardBarrack _guardBarrack;
@@ -28,22 +28,10 @@ public class GuardSpawner : MonoBehaviour
 
     private void SpawnGuard()
     {
-        for (int i = 0; i < _spawnCount; i++)
-            SpawnOne();
-    }
-
-    private void SpawnOne()
-    {
-        // 랜덤 방향, 반경
-        Vector2 dir = Random.insideUnitCircle.normalized;
-        float dist = Random.Range(0f, _spawnRadius);
-
-        Vector3 spawnPos = _guardBarrack.transform.position + (Vector3)(dir * dist);
-
         GuardController guard = GuardPool.Instance.GetGuard();
         guard.SetOriginBase(_guardBarrack);
         _guardBarrack.OnGuardSpawned();
 
-        guard.transform.position = spawnPos;
+        guard.transform.position = _door.position;
     }
 }

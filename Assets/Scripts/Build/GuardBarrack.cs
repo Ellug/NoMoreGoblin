@@ -40,7 +40,7 @@ public class GuardBarrack : MonoBehaviour, IDamageable
     public void Die()
     {
         // 매니져에 통보
-        GuardBarrackManager.Instance.OnGuardBarrackDestroyed(this);
+        BuildingStructureManager.Instance.OnGuardBarrackDestroyed(this);
 
         _isAlive = false;
         Destroy(gameObject);
