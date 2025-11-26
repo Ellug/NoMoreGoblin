@@ -165,4 +165,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Building
   _maxHp: 50
   _curHp: 0
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: b3d5ab8908526db4c997451e082a3e5b, type: 2}

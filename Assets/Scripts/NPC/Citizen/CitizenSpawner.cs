@@ -27,9 +27,11 @@ public class CitizenSpawner : MonoBehaviour
 
     private void SpawnCitizen()
     {
+        // 집에 인구수 다 차면 생성 X
+        if (!_house.CanAcceptMoreCitizens) return;
+
         CitizenController citizen = CitizenPool.Instance.GetCitizen();
         citizen.SetOriginBase(_house);
-        _house.OnCitizenSpawned();
 
         ResourceManager.Instance.Add(ResourceType.NPC, 1);
         citizen.transform.position = _door.position;

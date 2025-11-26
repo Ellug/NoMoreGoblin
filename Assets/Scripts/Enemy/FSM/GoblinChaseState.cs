@@ -3,7 +3,7 @@ using UnityEngine;
 public class GoblinChaseState : GoblinState
 {
     private const float LoseTargetDistanceMultiplier = 1.2f;
-    private float _retargetInterval = 1.5f;
+    private float _retargetInterval = 1f;
     private float _retargetTimer = 0f;
 
     public GoblinChaseState(Goblin goblin, GoblinFSM fsm) : base(goblin, fsm) { }
@@ -28,20 +28,30 @@ public class GoblinChaseState : GoblinState
             _goblin.SetIdleState();
             return;
         }
+        
 
-        // 이미 다른 고블린에게 납치된 시민이면 추적 포기
-        if (_goblin.target.TryGetComponent<CitizenController>(out var citizen) && citizen.IsKidnapped)
+        // 이미 다른 고블린에게 납치된 시민 or 도주 성공한 시민 추적 포기
+        if (_goblin.target.TryGetComponent<CitizenController>(out var citizen))
         {
-            _goblin.SetIdleState();
-            return;
+            if (citizen.IsInsideHouse)
+            {
+                _goblin.SetIdleState();
+                return;
+            }
+
+            if (citizen.IsKidnapped)
+            {
+                _goblin.SetIdleState();
+                return;
+            }
         }
 
         float dist = Vector2.Distance(_goblin.transform.position, _goblin.target.position);
 
-        // 기존 타겟이 어택레인지보다 2배 이상 거리일 때
-        if (dist > _goblin.AttackRange * 2f)
+        // 기존 타겟이 어택레인지보다 멀 때
+        if (dist > _goblin.AttackRange)
         {
-            // 1.5초마다 재탐색 후, dist 보다 가까우면 교체 교체
+            // 1초마다 재탐색 후, dist 보다 가까우면 교체
             if (TryRetarget(out var newTarget))
             {
                 float newDist = Vector2.Distance(_goblin.transform.position, newTarget.position);

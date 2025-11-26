@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class CitizenController : MonoBehaviour, IDamageable
@@ -37,6 +37,8 @@ public class CitizenController : MonoBehaviour, IDamageable
     // 레이어 하드코딩
     public int layers = 1 << 8;
     public bool IsKidnapped { get; set; } = false;
+    public bool IsInsideHouse { get; private set; }
+
 
     public Rigidbody2D Rb => _rb;
     public Animator Anim => _anim;
@@ -100,17 +102,28 @@ public class CitizenController : MonoBehaviour, IDamageable
         _collider.enabled = true;
         target = null;
         targetPos = null;
+
+        // 집 초기화
+        if (_originBase != null)
+            _originBase.UnregisterCitizen(this);
         originBaseTrf = null;
         _originBase = null;
+
         _model.SetIsAlive(true);
 
         _fsm.ChangeState(IdleState);
     }
 
+    // 자기 집 설정
     public void SetOriginBase(House originBase)
     {
+        if (_originBase != null)
+            _originBase.UnregisterCitizen(this);
+
         _originBase = originBase;
         originBaseTrf = originBase.transform;
+
+        _originBase.RegisterCitizen(this);
     }
 
     // Move
@@ -130,12 +143,9 @@ public class CitizenController : MonoBehaviour, IDamageable
 
         if (!destination.HasValue) return;
 
-        // Vector3 dir = destination.Value - transform.position;
-        // dir.Normalize();
-
         // 회피 기동!
         Vector2 desired = ((Vector2)(destination.Value - transform.position)).normalized;
-        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired, 0.5f, 1f, 0.3f);
+        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired);
 
         // 최종 이동 방향
         Vector2 finalDir = avoid.normalized;
@@ -231,7 +241,7 @@ public class CitizenController : MonoBehaviour, IDamageable
 
         // 기지에 카운트 감소 처리
         if (_originBase != null)
-            _originBase.OnCitizenReturned();
+            _originBase.UnregisterCitizen(this);
 
         ResourceManager.Instance.Add(ResourceType.Guard, -1);
 
@@ -251,5 +261,89 @@ public class CitizenController : MonoBehaviour, IDamageable
 
         IsKidnapped = true;
         _fsm.ChangeState(KidnapSate);
+    }
+
+    // 집 입장
+    public void EnterHouse(House house)
+    {
+        if (IsInsideHouse) return;
+
+        IsInsideHouse = true;
+        house.EnterHouse(this);
+
+        // 시민 숨기기, 물리 끄기
+        _collider.enabled = false;
+        _rb.simulated = false;
+
+        var renderer = GetComponentInChildren<Renderer>();
+        if (renderer != null)
+            renderer.enabled = false;
+
+        target = null;
+        targetPos = null;
+        _fsm.ChangeState(IdleState);
+    }
+
+    // 집 퇴장
+    public void ExitHouse()
+    {
+        if (!IsInsideHouse) return;
+
+        IsInsideHouse = false;
+        _originBase.ExitHouse(this);
+
+        // 다시 보이게
+        _collider.enabled = true;
+        _rb.simulated = true;
+
+        var renderer = GetComponentInChildren<Renderer>();
+        if (renderer != null)
+            renderer.enabled = true;
+
+        _fsm.ChangeState(PatrolState);
+    }
+
+    // 집 잃음
+    public void OnOriginHouseDestroyed()
+    {
+        originBaseTrf = null;
+        _originBase = null;
+
+        // 집 잃은 경우 → 새 집 찾기 시도
+        TryFindNewHouse();
+    }
+
+    public void TryFindNewHouse()
+    {
+        List<House> houses = BuildingStructureManager.Instance.GetHouses();
+
+        House best = null;
+        float bestDist = float.MaxValue;
+
+        foreach (var h in houses)
+        {
+            if (h == null) continue;
+            if (!h.CanAcceptMoreCitizens) continue;  // 빈 자리 없음
+
+            float dist = Vector2.Distance(transform.position, h.transform.position);
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                best = h;
+            }
+        }
+
+        if (best != null)
+        {
+            SetOriginBase(best);
+            targetPos = best.Door.position;
+            target = best.Door;
+            _fsm.ChangeState(FleeState);
+        }
+        else
+        {
+            // 집이 없음 → Idle
+            SetIdleState();
+        }
     }
 }

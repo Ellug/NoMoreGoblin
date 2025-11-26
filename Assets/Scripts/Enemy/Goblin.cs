@@ -125,7 +125,7 @@ public class Goblin : MonoBehaviour, IDamageable
 
         // 회피 기동!
         Vector2 v2Dir = new Vector2(dir.x, dir.y);
-        v2Dir = ObstacleAvoidance.GetAvoidDirection(transform, v2Dir, 0.5f, 10f, 1f);
+        v2Dir = ObstacleAvoidance.GetAvoidDirection(transform, v2Dir);
 
         // 이동
         _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * v2Dir);
@@ -210,7 +210,11 @@ public class Goblin : MonoBehaviour, IDamageable
         {
             if (!h.gameObject.activeInHierarchy) continue;
             if (!h.TryGetComponent<IDamageable>(out var t) || !t.IsAlive) continue;
-            if (h.TryGetComponent<CitizenController>(out var citizen) && citizen.IsKidnapped) continue;
+            if (h.TryGetComponent<CitizenController>(out var citizen))
+            {
+                if (citizen.IsInsideHouse) continue;
+                if (citizen.IsKidnapped) continue;
+            }
 
             // 태그 필터
             if (!(h.CompareTag("Player") ||

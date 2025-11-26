@@ -113,7 +113,7 @@ Rigidbody2D:
   m_LinearDamping: 1000000
   m_AngularDamping: 1000000
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: c4dbbab330fb29a4cb4d844a5852f5bf, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -159,7 +159,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: -0.05}
-  m_Size: {x: 0.1, y: 0.25}
+  m_Size: {x: 0.1, y: 0.15}
   m_Direction: 0
 --- !u!95 &9144269788847589309
 Animator:
@@ -226,7 +226,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CitizenModel
   _maxHp: 100
   _moveSpeed: 3
-  _detectRange: 18
+  _detectRange: 25
   _curHp: 0
   _isAlive: 0
 --- !u!114 &8037458448250236157

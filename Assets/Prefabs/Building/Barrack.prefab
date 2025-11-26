@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 1322595380920040684}
   - component: {fileID: 2141564549665353213}
   - component: {fileID: 4803767877648389387}
-  - component: {fileID: 3828589095033787043}
   - component: {fileID: -8556141982794620365}
   - component: {fileID: 7730436833534935141}
   - component: {fileID: 8108373385324731240}
@@ -142,21 +141,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 41, y: 34}
   m_EdgeRadius: 0
---- !u!114 &3828589095033787043
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3557610736383461273}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93be21e1db46d9f4eaa6d8aebff4d7d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Building
-  _maxHp: 100
-  _curHp: 0
-  data: {fileID: 11400000, guid: 812e970cfbb288b488e40b80d0250a4f, type: 2}
 --- !u!114 &-8556141982794620365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,7 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GuardBarrack
   _maxHp: 50
   _curHp: 0
-  spawnRadius: 30
+  data: {fileID: 11400000, guid: 812e970cfbb288b488e40b80d0250a4f, type: 2}
   maxGuardCount: 8
   currentGuardCount: 0
 --- !u!114 &8108373385324731240
@@ -226,7 +210,7 @@ Transform:
   m_GameObject: {fileID: 7813696167196748299}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

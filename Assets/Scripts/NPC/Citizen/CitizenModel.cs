@@ -6,7 +6,7 @@ public class CitizenModel : MonoBehaviour
     [Header("Base Stats")]
     [SerializeField] private float _maxHp = 100f;
     [SerializeField] private float _moveSpeed = 5f;
-    [SerializeField] private float _detectRange = 1f;
+    [SerializeField] private float _detectRange = 30f;
 
     [Header("Runtime")]
     [SerializeField] private float _curHp;

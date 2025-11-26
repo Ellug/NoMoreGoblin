@@ -32,4 +32,21 @@ public class BuildingStructureManager : MonoBehaviour
     {
         _houses.Remove(house);
     }
+
+    public void RegisterHouse(House house)
+    {
+        if (!_houses.Contains(house))
+            _houses.Add(house);
+    }
+
+    public void UnregisterHouse(House house)
+    {
+        if (!_houses.Contains(house))
+            _houses.Remove(house);
+    }
+
+    public List<House> GetHouses()
+    {
+        return _houses;
+    }
 }

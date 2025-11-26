@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8361733192342194817}
   - component: {fileID: 4594171094892359226}
   - component: {fileID: 3892647395967193133}
+  - component: {fileID: 453608172995162409}
   m_Layer: 6
   m_Name: FenceVer
   m_TagString: Building
@@ -150,3 +151,18 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 10}
   m_EdgeRadius: 0
+--- !u!114 &453608172995162409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6427983221906432097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93be21e1db46d9f4eaa6d8aebff4d7d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Building
+  _maxHp: 50
+  _curHp: 0
+  data: {fileID: 11400000, guid: 4e792fbff4856af4b9d78c56b2e4d65c, type: 2}

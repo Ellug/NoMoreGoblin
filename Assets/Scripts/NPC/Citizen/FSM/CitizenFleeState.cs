@@ -28,12 +28,21 @@ public class CitizenFleeState : CitizenState
             _citizen.SetIdleState();
             return;
         }
+        
+        // 집 없으면 Idle
+        if (_citizen.originBaseTrf == null)
+        {
+            _citizen.SetIdleState();
+            return;
+        }
 
         // 도착 체크
         float dist = Vector2.Distance(_citizen.transform.position, _citizen.targetPos.Value);
         if (dist < 1.5f)
         {
-            _citizen.SetIdleState();
+            // 시민 입장 처리
+            House house = _citizen.originBaseTrf.GetComponent<House>();
+            _citizen.EnterHouse(house);
             return;
         }
     }

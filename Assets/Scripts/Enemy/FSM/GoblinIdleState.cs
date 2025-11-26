@@ -4,7 +4,7 @@ public class GoblinIdleState : GoblinState
 {
     private float _idleTimer;
     private float _idleDuration;
-    private float _detectDurattion = 2f;
+    private float _detectDurattion = 1f;
     private float _detectTimer;
 
     public GoblinIdleState(Goblin goblin, GoblinFSM fsm) : base(goblin, fsm) { }
@@ -13,7 +13,7 @@ public class GoblinIdleState : GoblinState
     {
         _idleTimer = 0f;
         _detectTimer = 0f;
-        _idleDuration = Random.Range(5f, 20f);
+        _idleDuration = Random.Range(2f, 5f);
 
         _goblin.target = null;
         _goblin.targetPos = null;

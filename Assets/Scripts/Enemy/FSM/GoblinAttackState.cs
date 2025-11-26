@@ -57,6 +57,9 @@ public class GoblinAttackState : GoblinState
                 case DamageableType.Guard:
                     dmged.TakeDamage(_goblin.Dmg, _goblin.gameObject);
                     break;
+                case DamageableType.Building:
+                    dmged.TakeDamage(_goblin.Dmg, _goblin.gameObject);
+                    break;
             }
         }
     }

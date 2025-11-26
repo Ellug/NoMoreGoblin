@@ -139,7 +139,7 @@ public class GuardController : MonoBehaviour, IDamageable
 
         // 회피 기동!
         Vector2 desired = ((Vector2)(destination.Value - transform.position)).normalized;
-        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired, 0.5f, 1f, 0.3f);
+        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired);
 
         // 최종 이동 방향
         Vector2 finalDir = avoid.normalized;

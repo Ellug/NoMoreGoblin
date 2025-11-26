@@ -14,7 +14,7 @@ public class CitizenIdleState : CitizenState
     {
         _idleTimer = 0f;
         _detectTimer = 0f;
-        _idleDuration = Random.Range(5f, 20f);
+        _idleDuration = Random.Range(3f, 7f);
 
         _citizen.target = null;
         _citizen.targetPos = null;

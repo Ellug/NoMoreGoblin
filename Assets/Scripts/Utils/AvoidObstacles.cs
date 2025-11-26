@@ -2,15 +2,18 @@ using UnityEngine;
 
 public static class ObstacleAvoidance
 {
+
+
     public static Vector2 GetAvoidDirection(
         Transform self,
-        Vector2 desiredDir,
-        float radius,
-        float checkDistance,
-        float avoidStrength
+        Vector2 desiredDir        
         )
     {
         int layers = (1 << 6) | (1 << 7);
+
+        float radius = 0.2f;
+        float checkDistance = 0.1f;
+        float avoidStrength = 0.3f;
 
         // 직진 방지용 CircleCast
         RaycastHit2D hit = Physics2D.CircleCast(self.position, radius, desiredDir, checkDistance, layers);

@@ -1,48 +1,19 @@
 using UnityEngine;
 
-public class GuardBarrack : MonoBehaviour, IDamageable
+public class GuardBarrack : BaseBuilding
 {
-    [SerializeField] private float _maxHp = 50f;
-    [SerializeField] private float _curHp;
-
-    public DamageableType Type => DamageableType.Building;
-    private bool _isAlive;
-    public bool IsAlive => _isAlive;
-
-    public float spawnRadius = 30f;
-    public int maxGuardCount = 8;
+    [Header("Barrack Settings")]
+    public int maxGuardCount = 4;
     public int currentGuardCount = 0;
 
-    void Awake()
-    {
-        _curHp = _maxHp;
-        _isAlive = true;
-    }
+    public void OnGuardSpawned() => currentGuardCount++;
+    public void OnGuardReturned() => currentGuardCount--;
 
-    public void OnGuardSpawned()
+    protected override void Die()
     {
-        currentGuardCount++;
-    }
-
-    public void OnGuardReturned()
-    {
-        currentGuardCount--;
-    }
-
-    public void TakeDamage(float dmg, GameObject attacker = null)
-    {
-        _curHp -= dmg;
-
-        if (_curHp <= 0)
-            Die();
-    }
-
-    public void Die()
-    {
-        // 매니져에 통보
+        // Barrack 파괴
         BuildingStructureManager.Instance.OnGuardBarrackDestroyed(this);
 
-        _isAlive = false;
-        Destroy(gameObject);
+        base.Die();
     }
 }
