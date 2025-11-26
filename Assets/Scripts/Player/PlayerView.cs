@@ -20,8 +20,8 @@ public class PlayerView : MonoBehaviour
     }
 
     public void ShowDeath()
-    {
-        Debug.Log("PlayerView: Show death UI / animation");
-        // TODO: 사망 애니메이션 / UI 표시
+    {        
+        // TODO: 사망 애니메이션
+        GameManager.Instance.GameOver();
     }
 }

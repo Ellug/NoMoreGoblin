@@ -28,10 +28,37 @@ public class GuardSpawner : MonoBehaviour
 
     private void SpawnGuard()
     {
+        ResourceManager res = ResourceManager.Instance;
+
+        if (!res.TryConsume(ResourceType.Food, 3))
+        {
+            FloatingTextManager.Instance.ShowText(
+                "식량이 부족합니다.",
+                _door.position,
+                Color.red,
+                50f,
+                2f
+            );
+            return;
+        }
+
+        if (!res.TryConsume(ResourceType.Wood, 1))
+        {
+            FloatingTextManager.Instance.ShowText(
+                "나무가 부족합니다.",
+                _door.position,
+                Color.red,
+                50f,
+                2f
+            );
+            return;
+        }
+
         GuardController guard = GuardPool.Instance.GetGuard();
         guard.SetOriginBase(_guardBarrack);
         _guardBarrack.OnGuardSpawned();
 
+        res.Add(ResourceType.Guard, 1);
         guard.transform.position = _door.position;
     }
 }

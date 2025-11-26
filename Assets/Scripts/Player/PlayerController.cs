@@ -88,11 +88,13 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     void Update()
     {
+        if (!IsAlive) return;
         _fsm.CurrentState.UpdateLogic();
     }
 
     void FixedUpdate()
     {
+        if (!IsAlive) return;
         _fsm.CurrentState.UpdatePhysics();
     }
 
@@ -118,6 +120,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         if (ctx.performed)
             BuildPressed = true;
+    }
+
+    public void Pause(InputAction.CallbackContext ctx)
+    {
+        if (ctx.started && _fsm.CurrentState != BuildState)
+            GameManager.Instance.PauseGame();
     }
 
     // Move Logic
@@ -158,7 +166,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         transform.localScale = scale;
 
         // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 1.2f;
+        float offset = 1.3f;
         pos.x += facingRight ? offset : -offset;
         transform.position = pos;
     }
@@ -183,6 +191,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void TakeDamage(float dmg, GameObject attacker = null)
     {
         _model.TakeDamage(dmg);
+        _anim.SetTrigger("HitTrigger");
     }
 
     public void AddExp(float exp)
@@ -193,11 +202,10 @@ public class PlayerController : MonoBehaviour, IDamageable
     // Model 이벤트 콜백
     private void OnPlayerDie()
     {
-        Debug.Log("PlayerController: Player is Dead");
+        _anim.SetTrigger("DeathTrigger");        
         _isAlive = false;
-        _view.ShowDeath();
 
-        // TODO: FSM 정지, GameOver UI 호출 등
+        _view.ShowDeath();
     }
 
     private void OnPlayerLevelUp()

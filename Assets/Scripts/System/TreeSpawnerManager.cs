@@ -12,7 +12,7 @@ public class TreeSpawnerManager : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private int _treeCount = 2000;
     [SerializeField] private float _minDistanceBetweenTrees = 1.3f;
-    [SerializeField] private float _safeRadius = 30f;   // StartZone 근처 제외 영역
+    [SerializeField] private float _safeRadius = 30f;
 
     [Header("Start Zone")]
     [SerializeField] private Transform _startZoneCenter;
@@ -54,7 +54,6 @@ public class TreeSpawnerManager : MonoBehaviour
             if (!IsFarEnough(randomWorld)) continue;
 
             Vector3 spawnPos = _groundTilemap.CellToWorld(cell) + new Vector3(0.5f, 0.5f, 0);
-            // Instantiate(_treePrefab, spawnPos, Quaternion.identity, transform);
             var tree = Instantiate(_treePrefab, spawnPos, Quaternion.identity, transform);
             tree.GetComponent<TreeObj>().Init(_collisionTilemap, cell);
 

@@ -252,6 +252,9 @@ public class GuardController : MonoBehaviour, IDamageable
         if (_originBase != null)
             _originBase.OnGuardReturned();
 
+        // 리소스 매니져에서 카운트 감소 처리
+        ResourceManager.Instance.Add(ResourceType.Guard, -1);
+
         // 2초 후 풀링으로 리턴 for 시체 연출
         Invoke(nameof(Despawn), 2f);
     }

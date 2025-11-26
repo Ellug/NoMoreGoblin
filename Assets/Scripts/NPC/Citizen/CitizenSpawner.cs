@@ -31,6 +31,7 @@ public class CitizenSpawner : MonoBehaviour
         citizen.SetOriginBase(_house);
         _house.OnCitizenSpawned();
 
+        ResourceManager.Instance.Add(ResourceType.NPC, 1);
         citizen.transform.position = _door.position;
     }
 }

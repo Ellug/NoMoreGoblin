@@ -213,7 +213,7 @@ public class CitizenController : MonoBehaviour, IDamageable
     // IDamageable -> 납치 발동
     public void TakeDamage(float dmg, GameObject attacker)
     {
-        // _model.TakeDamage(dmg);
+        _model.TakeDamage(dmg);
         // 납치
     }
 
@@ -232,6 +232,8 @@ public class CitizenController : MonoBehaviour, IDamageable
         // 기지에 카운트 감소 처리
         if (_originBase != null)
             _originBase.OnCitizenReturned();
+
+        ResourceManager.Instance.Add(ResourceType.Guard, -1);
 
         // 2초 후 풀링으로 리턴 for 시체 연출
         Invoke(nameof(Despawn), 2f);

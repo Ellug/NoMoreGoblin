@@ -121,8 +121,7 @@ public class GoblinBaseManager : MonoBehaviour
         }
         else
         {
-            // Game Win 로직
-            Debug.Log("게임 승리");
+            GameManager.Instance.GameWin();
         }
     }
 }

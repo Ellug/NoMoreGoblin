@@ -119,25 +119,10 @@ public class BuildManager : MonoBehaviour
         if (!IsBuildMode || _selectedBuilding == null) 
             return;
 
-        // 비용 검사
-        if (!ResourceManager.Instance.TryConsume(_selectedBuilding.woodCost))
-        {
-            FloatingTextManager.Instance.ShowText(
-                "자원이 부족합니다.",
-                worldPos,
-                Color.red,
-                50f,
-                2f
-            );
-            return;
-        }
-
         Vector3Int centerCell = _grid.WorldToCell(worldPos);
 
         if (CanPlace(centerCell))
             Place(centerCell);
-        else
-            Debug.Log("설치 불가");
     }
 
     // 설치 가능 여부 검사
@@ -171,6 +156,19 @@ public class BuildManager : MonoBehaviour
     // 설치 실행
     private void Place(Vector3Int centerCell)
     {
+        // 비용 검사
+        if (!ResourceManager.Instance.TryConsume(ResourceType.Wood, _selectedBuilding.woodCost))
+        {
+            FloatingTextManager.Instance.ShowText(
+                "자원이 부족합니다.",
+                centerCell,
+                Color.red,
+                50f,
+                2f
+            );
+            return;
+        }
+
         Vector2Int size = _selectedBuilding.size;
         Vector3Int bottomLeftCell = GetBottomLeftCell(centerCell, size);
 
