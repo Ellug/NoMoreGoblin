@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class GuardPatrolState : GuardState
 {
-    private float _patrolRadius = 15f;
+    private float _patrolRadius = 25f;
     private float _detectDurattion = 1f;
     private float _detectTimer;
 

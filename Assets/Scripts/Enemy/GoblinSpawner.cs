@@ -5,7 +5,8 @@ public class GoblinSpawner : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private int _spawnCount = 2;
     [SerializeField] private float _interval = 15f;
-    [SerializeField] private float _spawnRadius = 30f;
+    // [SerializeField] private float _spawnRadius = 30f;
+    [SerializeField] private Transform _door;
     
     private float _timer;
     private GoblinBase _goblinBase;
@@ -35,21 +36,21 @@ public class GoblinSpawner : MonoBehaviour
     private void SpawnOne()
     {
         // 랜덤 방향, 반경
-        Vector2 dir = Random.insideUnitCircle.normalized;
-        float dist = Random.Range(0f, _spawnRadius);
+        // Vector2 dir = Random.insideUnitCircle.normalized;
+        // float dist = Random.Range(0f, _spawnRadius);
 
-        Vector3 spawnPos = _goblinBase.transform.position + (Vector3)(dir * dist);
+        // Vector3 spawnPos = _goblinBase.transform.position + (Vector3)(dir * dist);
 
         Goblin goblin = GoblinPool.Instance.GetGoblin();
         goblin.SetOriginBase(_goblinBase);
         _goblinBase.OnGoblinSpawned();
 
-        goblin.transform.position = spawnPos;
+        goblin.transform.position = _door.position;
     }
 
     public void IncreaseSpawnCount(int amount)
     {
         _spawnCount += amount;
-        _spawnRadius += 5f;
+        // _spawnRadius += 5f;
     }
 }

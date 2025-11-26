@@ -18,6 +18,13 @@ public class PlayerModel : MonoBehaviour
     [SerializeField] private float _curHp;
     [SerializeField] private float _curExp;
 
+    [Header("Levelup Counts")]
+    [SerializeField] private int _moveSpeedLevel = 0;
+    [SerializeField] private int _attackDamageLevel = 0;
+    [SerializeField] private int _attackSpeedLevel = 0;
+    [SerializeField] private int _attackRangeLevel = 0;
+    [SerializeField] private int _maxHpLevel = 0;
+
     // Properties
     public float MaxHp => _maxHp;
     public float CurHp => _curHp;
@@ -71,7 +78,19 @@ public class PlayerModel : MonoBehaviour
         OnExpChanged?.Invoke(_curExp / _maxExp);
     }
 
-    // 레벨업 강화 함수들
+    // Levelup Count Property & Method
+    public int MoveSpeedLevel => _moveSpeedLevel;
+    public int AttackDamageLevel => _attackDamageLevel;
+    public int AttackSpeedLevel => _attackSpeedLevel;
+    public int AttackRangeLevel => _attackRangeLevel;
+    public int MaxHPLevel => _maxHpLevel;
+
+    public void IncMoveSpeedLevel()  => _moveSpeedLevel++;
+    public void IncAttackDamageLevel() => _attackDamageLevel++;
+    public void IncAttackSpeedLevel()  => _attackSpeedLevel++;
+    public void IncAttackRangeLevel()  => _attackRangeLevel++;
+    public void IncMaxHPLevel()  => _maxHpLevel++;
+
     public void AddMoveSpeed(float amount)
     {
         _moveSpeed += amount;
@@ -96,5 +115,4 @@ public class PlayerModel : MonoBehaviour
         _maxHp += amount;
         _curHp += amount;
     }
-
 }

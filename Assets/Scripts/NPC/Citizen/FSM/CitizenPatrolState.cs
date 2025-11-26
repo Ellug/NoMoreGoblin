@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CitizenPatrolState : CitizenState
 {
-    private float _patrolRadius = 30f;
+    private float _patrolRadius = 40f;
     private float _detectDurattion = 1f;
     private float _detectTimer;
 
