@@ -15,11 +15,13 @@ public class CitizenController : MonoBehaviour, IDamageable
     public Transform target;
     public Vector3? targetPos;
     public Transform originBaseTrf;
+    [SerializeField] private bool _isKidnaped = false;
 
     // Components
     private Rigidbody2D _rb;
     private Animator _anim;
     private Collider2D _collider;
+    private NpcMoveController _movement;
 
     // Internal
     private House _originBase;
@@ -36,7 +38,7 @@ public class CitizenController : MonoBehaviour, IDamageable
     public bool IsAlive => _model.IsAlive;
     // 레이어 하드코딩
     public int layers = 1 << 8;
-    public bool IsKidnapped { get; set; } = false;
+    public bool IsKidnapped { get { return _isKidnaped; } set { _isKidnaped = value; } }
     public bool IsInsideHouse { get; private set; }
 
 
@@ -75,6 +77,8 @@ public class CitizenController : MonoBehaviour, IDamageable
         PatrolState = new CitizenPatrolState(this, _fsm);
         FleeState = new CitizenFleeState(this, _fsm);
         KidnapSate = new CitizenKidnapSate(this, _fsm);
+
+        _movement = new NpcMoveController(_rb);
     }
 
     void Start()
@@ -131,33 +135,19 @@ public class CitizenController : MonoBehaviour, IDamageable
     {
         if (CurHp <= 0) return;
 
-        Vector3? destination = null;
+        Vector3? dest = targetPos ?? (target != null ? target.position : null);
+        if (!dest.HasValue) return;
 
-        // targetPos 우선
-        if (targetPos.HasValue)
-            destination = targetPos.Value;
+        _movement.MoveTo(dest.Value, MoveSpeed);
 
-        // target 없으면 Transform 우선
-        if (target != null)
-            destination = target.position;
-
-        if (!destination.HasValue) return;
-
-        // 회피 기동!
-        Vector2 desired = ((Vector2)(destination.Value - transform.position)).normalized;
-        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired);
-
-        // 최종 이동 방향
-        Vector2 finalDir = avoid.normalized;
-
-        // 이동
-        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * finalDir);
-
-        HandleFlip(finalDir.x);
+        HandleFlip(dest.Value.x - transform.position.x);
     }
 
     private void HandleFlip(float moveX)
     {
+        if (Mathf.Abs(moveX) < 0.1f)
+        return;
+
         if (moveX > 0 && !_isFacingRight)
             Flip(true);
         else if (moveX < 0 && _isFacingRight)
@@ -170,18 +160,9 @@ public class CitizenController : MonoBehaviour, IDamageable
 
         _isFacingRight = facingRight;
 
-        // Flip 하기 전 위치 보존
-        Vector3 pos = transform.position;
-
-        // Flip
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
         transform.localScale = scale;
-
-        // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 0.1f;
-        pos.x += facingRight ? offset : -offset;
-        transform.position = pos;
     }
 
     // 타겟 감지
@@ -220,11 +201,10 @@ public class CitizenController : MonoBehaviour, IDamageable
         _fsm.ChangeState(IdleState);
     }
 
-    // IDamageable -> 납치 발동
-    public void TakeDamage(float dmg, GameObject attacker)
+    // IDamageable -> 얘넨 안 맞고 납치. 납치 끝나면 사망용
+    public void TakeDamage(float dmg, GameObject attacker = null)
     {
         _model.TakeDamage(dmg);
-        // 납치
     }
 
     public void TakeHeal()
@@ -235,7 +215,7 @@ public class CitizenController : MonoBehaviour, IDamageable
     // Model 이벤트 콜백
     private void OnDie()
     {
-        _anim.SetTrigger("DeathTrigger");
+        // _anim.SetTrigger("DeathTrigger");
         _collider.enabled = false;
         _model.SetIsAlive(false);
 
@@ -243,7 +223,7 @@ public class CitizenController : MonoBehaviour, IDamageable
         if (_originBase != null)
             _originBase.UnregisterCitizen(this);
 
-        ResourceManager.Instance.Add(ResourceType.Guard, -1);
+        ResourceManager.Instance.Add(ResourceType.NPC, -1);
 
         // 2초 후 풀링으로 리턴 for 시체 연출
         Invoke(nameof(Despawn), 2f);

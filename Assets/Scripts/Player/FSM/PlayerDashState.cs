@@ -26,10 +26,6 @@ public class PlayerDashState : PlayerState
 
     public override void UpdateLogic()
     {
-        ////
-        // 대시 종료 전에 어택시 대시어택 발동 명시 추가 필요 (현재는 애니메이션에서 트리거만 운좋게 작동)
-        ////
-
         if (!_player.IsDashing)
             _fsm.ChangeState(_player.MoveState);
     }

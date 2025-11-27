@@ -19,8 +19,8 @@ public class MinimapController : MonoBehaviour
     private Vector2 _confinerMax;
     private WaitForSeconds _minimapScanDelay;
 
-    private Dictionary<TreeObj, RectTransform> _treeIcons = new Dictionary<TreeObj, RectTransform>();
-    private Dictionary<Building, RectTransform> _buildingIcons = new Dictionary<Building, RectTransform>();
+    private Dictionary<TreeObj, RectTransform> _treeIcons = new();
+    private Dictionary<BaseBuilding, RectTransform> _buildingIcons = new();
 
     void Start()
     {
@@ -76,7 +76,7 @@ public class MinimapController : MonoBehaviour
         }
 
         // 건물 갱신
-        Building[] allBuildings = FindObjectsByType<Building>(FindObjectsSortMode.None);
+        BaseBuilding[] allBuildings = FindObjectsByType<BaseBuilding>(FindObjectsSortMode.None);
 
         // 새로 생긴 건물 추가
         foreach (var b in allBuildings)
@@ -86,7 +86,7 @@ public class MinimapController : MonoBehaviour
         }
 
         // 사라진 건물 제거
-        List<Building> removedBuildings = new List<Building>();
+        List<BaseBuilding> removedBuildings = new List<BaseBuilding>();
 
         foreach (var kvp in _buildingIcons)
         {
@@ -111,7 +111,7 @@ public class MinimapController : MonoBehaviour
         _treeIcons.Add(tree, icon);
     }
 
-    private void AddBuildingIcon(Building building)
+    private void AddBuildingIcon(BaseBuilding building)
     {
         RectTransform icon = Instantiate(_buildingDotPrefab, _minimapArea).GetComponent<RectTransform>();
         _buildingIcons.Add(building, icon);

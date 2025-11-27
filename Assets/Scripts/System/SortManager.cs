@@ -50,7 +50,7 @@ public class SortManager : MonoBehaviour
     // sr 바닥 기준 정렬 계산
     public void ApplySorting(SpriteRenderer sr)
     {
-        float bottomY = sr.bounds.min.y - 2.5f;
+        float bottomY = sr.bounds.min.y;
         sr.sortingOrder = -(int)((bottomY + worldOffsetY) * multiplier);
     }
 }

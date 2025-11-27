@@ -5,7 +5,6 @@ public class GoblinSpawner : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private int _spawnCount = 2;
     [SerializeField] private float _interval = 15f;
-    // [SerializeField] private float _spawnRadius = 30f;
     [SerializeField] private Transform _door;
     
     private float _timer;
@@ -18,6 +17,8 @@ public class GoblinSpawner : MonoBehaviour
 
     void Update()
     {
+        if (_goblinBase.currentGoblinCount >= _goblinBase.maxGoblinCount) return;
+
         _timer += Time.deltaTime;
 
         if (_timer >= _interval)
@@ -35,15 +36,9 @@ public class GoblinSpawner : MonoBehaviour
 
     private void SpawnOne()
     {
-        // 랜덤 방향, 반경
-        // Vector2 dir = Random.insideUnitCircle.normalized;
-        // float dist = Random.Range(0f, _spawnRadius);
-
-        // Vector3 spawnPos = _goblinBase.transform.position + (Vector3)(dir * dist);
-
         Goblin goblin = GoblinPool.Instance.GetGoblin();
         goblin.SetOriginBase(_goblinBase);
-        _goblinBase.OnGoblinSpawned();
+        _goblinBase.RegisterGoblin(goblin);
 
         goblin.transform.position = _door.position;
     }
@@ -51,6 +46,5 @@ public class GoblinSpawner : MonoBehaviour
     public void IncreaseSpawnCount(int amount)
     {
         _spawnCount += amount;
-        // _spawnRadius += 5f;
     }
 }

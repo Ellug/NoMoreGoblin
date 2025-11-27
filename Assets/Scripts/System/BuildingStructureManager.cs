@@ -7,8 +7,8 @@ public class BuildingStructureManager : MonoBehaviour
 
     [Header("Setting")]
 
-    private List<GuardBarrack> _guardBarracks = new List<GuardBarrack>();
-    private List<House> _houses = new List<House>();
+    private List<GuardBarrack> _guardBarracks = new();
+    private List<House> _houses = new();
 
     private void Awake()
     {
@@ -21,18 +21,7 @@ public class BuildingStructureManager : MonoBehaviour
         }
     }
 
-    // 베이스 파괴 시 호출
-    public void OnGuardBarrackDestroyed(GuardBarrack barrack)
-    {
-        // 리스트에서 제거
-        _guardBarracks.Remove(barrack);
-    }
-
-    public void OnHouseDestroyed(House house)
-    {
-        _houses.Remove(house);
-    }
-
+    // 집 등록 및 파괴
     public void RegisterHouse(House house)
     {
         if (!_houses.Contains(house))
@@ -45,8 +34,30 @@ public class BuildingStructureManager : MonoBehaviour
             _houses.Remove(house);
     }
 
-    public List<House> GetHouses()
+    public void OnHouseDestroyed(House house)
     {
-        return _houses;
+        _houses.Remove(house);
     }
+
+
+    // 배럭 등록 및 파괴
+    public void RegisterBarrack(GuardBarrack barrack)
+    {
+        if (!_guardBarracks.Contains(barrack))
+            _guardBarracks.Add(barrack);
+    }
+
+    public void UnregisterBarrack(GuardBarrack barrack)
+    {
+        if (!_guardBarracks.Contains(barrack))
+            _guardBarracks.Remove(barrack);
+    }
+
+    public void OnGuardBarrackDestroyed(GuardBarrack barrack)
+    {
+        _guardBarracks.Remove(barrack);
+    }
+
+    public List<House> GetHouses() => _houses;
+    public List<GuardBarrack> GetBarracks() => _guardBarracks;
 }

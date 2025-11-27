@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class BaseBuilding : MonoBehaviour, IDamageable
@@ -5,9 +6,11 @@ public abstract class BaseBuilding : MonoBehaviour, IDamageable
     [Header("Base Stats")]
     [SerializeField] protected float _maxHp = 50f;
     [SerializeField] protected float _curHp;
-
+    
     public DamageableType Type => DamageableType.Building;
 
+        // 타일맵 정보 저장
+    protected List<Vector3Int> _occupiedCells = new();
     protected bool _isAlive = true;
     public bool IsAlive => _isAlive;
 
@@ -33,6 +36,12 @@ public abstract class BaseBuilding : MonoBehaviour, IDamageable
     protected virtual void Die()
     {
         _isAlive = false;
+        BuildManager.Instance.RemoveCollision(_occupiedCells);
         Destroy(gameObject);
+    }
+
+    public void SetOccupiedCells(List<Vector3Int> cells)
+    {
+        _occupiedCells = cells;
     }
 }

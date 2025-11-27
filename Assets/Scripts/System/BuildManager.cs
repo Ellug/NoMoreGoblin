@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -11,6 +12,7 @@ public class BuildManager : MonoBehaviour
     [SerializeField] private Tilemap _groundTilemap;
     [SerializeField] private Tilemap _collisionTilemap;
     [SerializeField] private GridLayout _grid;              // 좌표 변환용
+    [SerializeField] private Collider2D _confiner;
 
     [Header("Build Settings")]
     public bool IsBuildMode { get; private set; } = false;
@@ -19,11 +21,17 @@ public class BuildManager : MonoBehaviour
 
     [SerializeField] private GameObject buildUI;
 
+    private static TileBase _dummyTile;
+
     private void Awake()
     {
         if (Instance == null)
         {
-            Instance = this;            
+            Instance = this;
+            
+            // 더미타일 초기화
+             if (_dummyTile == null)
+                _dummyTile = ScriptableObject.CreateInstance<Tile>();
         }
         else
         {
@@ -176,10 +184,18 @@ public class BuildManager : MonoBehaviour
         Vector3 bottomLeftWorld = _grid.CellToWorld(bottomLeftCell);
         Vector3 worldPos = bottomLeftWorld + new Vector3(size.x * 0.5f, 0f, 0f);
 
-        Instantiate(_selectedBuilding.prefab, worldPos, Quaternion.identity);
+        // 건물 생성 및 타일 정보 전달
+        GameObject b = Instantiate(_selectedBuilding.prefab, worldPos, Quaternion.identity);
+
+        // 충돌 타일 칠해지기 전에 차지한 타일 리스트 계산
+        var occupied = CalculateOccupiedTiles(bottomLeftCell, size);
+
+        // 건물에게 알려주기
+        if (b.TryGetComponent<BaseBuilding>(out var building))
+            building.SetOccupiedCells(occupied);
 
         // 충돌 타일맵 채우기
-        MarkCollision(bottomLeftCell);
+        MarkCollision(occupied);
 
         // 프리뷰 제거
         if (_previewObject != null)
@@ -190,21 +206,37 @@ public class BuildManager : MonoBehaviour
     }
 
     // 충돌 타일맵 채우기
-    private void MarkCollision(Vector3Int bottomLeftCell)
+    private void MarkCollision(List<Vector3Int> cells)
     {
-        int width = _selectedBuilding.size.x;
-        int height = _selectedBuilding.size.y;
+        foreach (var pos in cells)
+            _collisionTilemap.SetTile(pos, _dummyTile);
+    }
 
-        TileBase dummy = ScriptableObject.CreateInstance<Tile>();
+    // 타일맵 마크 제거
+    public void RemoveCollision(List<Vector3Int> cells)
+    {
+        foreach (var pos in cells)
+            _collisionTilemap.SetTile(pos, null);
+    }
+
+    // 타일 리스트
+    private List<Vector3Int> CalculateOccupiedTiles(Vector3Int bottomLeftCell, Vector2Int size)
+    {
+        List<Vector3Int> result = new();
+
+        int width = size.x;
+        int height = size.y;
 
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 Vector3Int pos = bottomLeftCell + new Vector3Int(x, y, 0);
-                _collisionTilemap.SetTile(pos, dummy);
+                result.Add(pos);
             }
         }
+
+        return result;
     }
 
     /// 실제 타일 영역의 좌측 하단 타일을 계산
@@ -220,5 +252,22 @@ public class BuildManager : MonoBehaviour
         int originY = centerCell.y;
 
         return new Vector3Int(originX, originY, centerCell.z);
+    }
+
+    public bool IsGround(Vector3 worldPos)
+    {
+        Vector3Int cell = _grid.WorldToCell(worldPos);
+        return _groundTilemap.HasTile(cell);
+    }
+
+    public bool IsCollisionTile(Vector3 worldPos)
+    {
+        Vector3Int cell = _grid.WorldToCell(worldPos);
+        return _collisionTilemap.HasTile(cell);
+    }
+
+    public bool IsInsideConfiner(Vector3 pos)
+    {
+        return _confiner.OverlapPoint(pos);
     }
 }

@@ -15,25 +15,36 @@ public class GoblinAttackState : GoblinState
 
     public override void UpdateLogic()
     {
-        // 대상이 없으면 Idle State
+        // 대상 유효성 체크
         if (_goblin.target == null ||
             !_goblin.target.gameObject.activeInHierarchy ||
-            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive)
-        )
+            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive))
         {
             _goblin.SetIdleState();
             return;
         }
 
-        float dist = Vector2.Distance(_goblin.transform.position, _goblin.target.position);
+        // Collider 표면 기준 거리 계산
+        float dist;
 
-        // 사거리 밖으로 나가면 다시 추적
+        if (_goblin.target.TryGetComponent<Collider2D>(out var col))
+        {
+            Vector2 closest = col.ClosestPoint(_goblin.transform.position);
+            dist = Vector2.Distance(_goblin.transform.position, closest);
+        }
+        else
+        {
+            dist = Vector2.Distance(_goblin.transform.position, _goblin.target.position);
+        }
+
+        // 사거리 밖 -> 다시 추적
         if (dist > _goblin.AttackRange * 1.1f)
         {
             _fsm.ChangeState(_goblin.ChaseState);
             return;
         }
 
+        // 공격 쿨다운
         _attackTimer += Time.deltaTime;
         if (_attackTimer >= _goblin.AttackCooldown)
         {

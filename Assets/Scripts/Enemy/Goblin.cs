@@ -11,6 +11,7 @@ public class Goblin : MonoBehaviour, IDamageable
     [SerializeField] private float _attackRange = 2.5f;
     [SerializeField] private float _attackCooldown = 1f;
     [SerializeField] private float _exp = 3f;
+    [SerializeField] private bool _isKidnap = false;
 
     public DamageableType Type => DamageableType.Enemy;
 
@@ -25,6 +26,7 @@ public class Goblin : MonoBehaviour, IDamageable
     private Collider2D _collider;
     private Rigidbody2D _rb;
     private Animator _anim;
+    private NpcMoveController _movement;
     private bool _isFacingRight = true;
 
     // Properties
@@ -38,7 +40,7 @@ public class Goblin : MonoBehaviour, IDamageable
     public bool IsAlive => _isAlive;
     // 일단 레이어 하드코딩
     public int layers = (1 << 9) | (1 << 6) | (1 << 10);
-    public bool IsKidnapping { get; set; }
+    public bool IsKidnapping { get { return _isKidnap; } set { _isKidnap = value; } }
 
     // FSM
     private GoblinFSM _fsm;
@@ -63,6 +65,8 @@ public class Goblin : MonoBehaviour, IDamageable
         ChaseState = new GoblinChaseState(this, _fsm);
         AttackState = new GoblinAttackState(this, _fsm);
         KidnapState = new GoblinKidnapState(this, _fsm);
+
+        _movement = new NpcMoveController(_rb);
     }
 
     void Start()
@@ -91,6 +95,7 @@ public class Goblin : MonoBehaviour, IDamageable
         originBaseTrf = null;
         _originBase = null;
         _isAlive = true;
+        IsKidnapping = false;
 
         _fsm.ChangeState(IdleState);
     }
@@ -100,6 +105,7 @@ public class Goblin : MonoBehaviour, IDamageable
         _originBase = originBase;
         originBaseTrf = originBase.transform;
 
+        _originBase.RegisterGoblin(this);
     }
     
     // Move
@@ -107,30 +113,41 @@ public class Goblin : MonoBehaviour, IDamageable
     {
         if (_curHp <= 0) return;
 
-        Vector3? destination = null;
+        Vector3 dest;
 
-        // targetPos 우선
-        if (targetPos.HasValue)
-            destination = targetPos.Value;
-
-        // target 없으면 Transform 우선
+        // 타겟 Transform 추적 (Chase/Attack)
         if (target != null)
-            destination = target.position;
+        {
+            // 기본 pivot 방향
+            Vector3 rawTargetPos = target.position;
 
-        if (!destination.HasValue) return;
+            // Collider 기반 보정
+            if (target.TryGetComponent<Collider2D>(out var col))
+            {
+                // Collider 외곽의 고블린과 가장 가까운 점을 목표로 사용
+                Vector2 closestPoint = col.ClosestPoint(transform.position);
+                dest = closestPoint;
+            }
+            else
+            {
+                dest = rawTargetPos;
+            }
+        }
+        // Patrol / Kidnap 시 targetPos 사용
+        else if (targetPos.HasValue)
+        {
+            dest = targetPos.Value;
+        }
+        else
+        {
+            _rb.linearVelocity = Vector2.zero;
+            return;
+        }
 
-        Vector3 dir = destination.Value - transform.position;
+        // 실제 이동
+        _movement.MoveTo(dest, _moveSpeed);
 
-        dir.Normalize();
-
-        // 회피 기동!
-        Vector2 v2Dir = new Vector2(dir.x, dir.y);
-        v2Dir = ObstacleAvoidance.GetAvoidDirection(transform, v2Dir);
-
-        // 이동
-        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * v2Dir);
-
-        HandleFlip(dir.x);
+        HandleFlip(dest.x - transform.position.x);
     }
 
     private void HandleFlip(float moveX)
@@ -147,18 +164,9 @@ public class Goblin : MonoBehaviour, IDamageable
 
         _isFacingRight = facingRight;
 
-        // Flip 하기 전 위치 보존
-        Vector3 pos = transform.position;
-
-        // Flip
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
         transform.localScale = scale;
-
-        // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 0.1f;
-        pos.x += facingRight ? offset : -offset;
-        transform.position = pos;
     }
 
     public void TakeDamage(float dmg, GameObject attacker)
@@ -187,10 +195,32 @@ public class Goblin : MonoBehaviour, IDamageable
 
         // 기지에 카운트 감소 처리
         if (_originBase != null)
-            _originBase.OnGoblinReturned();
+            _originBase.UnregisterGoblin(this);
 
         // 2초 후 풀링으로 리턴 for 시체 연출
         Invoke(nameof(Despawn), 2f);
+    }
+
+    public void RemoveFromBase()
+    {
+        if (_originBase != null)
+            _originBase.UnregisterGoblin(this);
+
+        _originBase = null;
+        originBaseTrf = null;
+    }
+
+    // 베이스 파괴시 호출될 재귀속
+    public void AssignToNewBase(GoblinBase newBase)
+    {
+        RemoveFromBase();
+        SetOriginBase(newBase);
+    }
+
+    // 베이스 파괴 시 호출될 FSM 전환
+    public void ChangeToPatrolState()
+    {
+        _fsm.ChangeState(PatrolState);
     }
 
     private void Despawn()
@@ -201,6 +231,8 @@ public class Goblin : MonoBehaviour, IDamageable
     // 타겟 감지 (가장 가까운 적)
     public Transform DetectTarget()
     {
+        if (IsKidnapping) return null;
+
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _detectRange, layers);
 
         Transform nearest = null;

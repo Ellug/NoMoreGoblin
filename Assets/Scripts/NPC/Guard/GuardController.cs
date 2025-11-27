@@ -19,6 +19,7 @@ public class GuardController : MonoBehaviour, IDamageable
     private Rigidbody2D _rb;
     private Animator _anim;
     private Collider2D _collider;
+    private NpcMoveController _movement;
 
     // Internal
     private GuardBarrack _originBase;
@@ -62,9 +63,9 @@ public class GuardController : MonoBehaviour, IDamageable
 
         // Model / View 참조 체크
         if (_model == null)
-            Debug.LogError("PlayerController: Where is Your Model?");
+            Debug.LogError("Guard C: Where is Your Model?");
         if (_view == null)
-            Debug.LogWarning("PlayerController: Where is Your View?");
+            Debug.LogWarning("Guard C: Where is Your View?");
 
         // Model 이벤트 구독 -> View 연결
         if (_model != null)
@@ -78,7 +79,9 @@ public class GuardController : MonoBehaviour, IDamageable
         IdleState = new GuardIdleState(this, _fsm);
         PatrolState = new GuardPatrolState(this, _fsm);
         ChaseState = new GuardChaseState(this, _fsm);
-        AttackState = new GuardAttackState(this, _fsm);        
+        AttackState = new GuardAttackState(this, _fsm);
+        
+        _movement = new NpcMoveController(_rb);
     }
 
     void Start()
@@ -115,6 +118,8 @@ public class GuardController : MonoBehaviour, IDamageable
     {
         _originBase = originBase;
         originBaseTrf = originBase.transform;
+
+        _originBase.RegisterGuard(this);
     }
 
     // Move
@@ -122,32 +127,12 @@ public class GuardController : MonoBehaviour, IDamageable
     {
         if (CurHp <= 0) return;
 
-        Vector3? destination = null;
+        Vector3? dest = targetPos ?? (target != null ? target.position : null);
+        if (!dest.HasValue) return;
 
-        // targetPos 우선
-        if (targetPos.HasValue)
-            destination = targetPos.Value;
+        _movement.MoveTo(dest.Value, MoveSpeed);
 
-        // target 없으면 Transform 우선
-        if (target != null)
-            destination = target.position;
-
-        if (!destination.HasValue) return;
-
-        // Vector3 dir = destination.Value - transform.position;
-        // dir.Normalize();
-
-        // 회피 기동!
-        Vector2 desired = ((Vector2)(destination.Value - transform.position)).normalized;
-        Vector2 avoid = ObstacleAvoidance.GetAvoidDirection(transform, desired);
-
-        // 최종 이동 방향
-        Vector2 finalDir = avoid.normalized;
-
-        // 이동
-        _rb.MovePosition(_rb.position + MoveSpeed * Time.fixedDeltaTime * finalDir);
-
-        HandleFlip(finalDir.x);
+        HandleFlip(dest.Value.x - transform.position.x);
     }
 
     private void HandleFlip(float moveX)
@@ -164,18 +149,9 @@ public class GuardController : MonoBehaviour, IDamageable
 
         _isFacingRight = facingRight;
 
-        // Flip 하기 전 위치 보존
-        Vector3 pos = transform.position;
-
-        // Flip
         Vector3 scale = transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (facingRight ? 1 : -1);
         transform.localScale = scale;
-
-        // 중앙 어긋남 조정을 위한 보정값 적용
-        float offset = 0.1f;
-        pos.x += facingRight ? offset : -offset;
-        transform.position = pos;
     }
 
     // 타겟 감지
@@ -214,7 +190,7 @@ public class GuardController : MonoBehaviour, IDamageable
         _fsm.ChangeState(IdleState);
     }
 
-    // Attack / Dash 쿨다운 관련 – FSM에서 호출
+    // Attack 쿨다운
     public void ResetAttack()
     {
         CanAttack = true;
@@ -250,7 +226,7 @@ public class GuardController : MonoBehaviour, IDamageable
 
         // 기지에 카운트 감소 처리
         if (_originBase != null)
-            _originBase.OnGuardReturned();
+            _originBase.UnregisterGuard(this);
 
         // 리소스 매니져에서 카운트 감소 처리
         ResourceManager.Instance.Add(ResourceType.Guard, -1);
@@ -262,5 +238,11 @@ public class GuardController : MonoBehaviour, IDamageable
     private void Despawn()
     {
         GuardPool.Instance.ReturnGuard(this);
+    }
+
+    // 배럭 잃음
+    public void OnOriginBarrackDestroyed()
+    {
+        OnDie();
     }
 }

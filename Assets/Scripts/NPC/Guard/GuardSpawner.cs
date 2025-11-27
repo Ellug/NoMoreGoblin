@@ -6,7 +6,6 @@ public class GuardSpawner : MonoBehaviour
     [SerializeField] private float _interval = 15f;
     [SerializeField] private Transform _door;
     
-    
     private float _timer;
     private GuardBarrack _guardBarrack;
 
@@ -28,6 +27,8 @@ public class GuardSpawner : MonoBehaviour
 
     private void SpawnGuard()
     {
+        if (!_guardBarrack.IsAlive) return;
+        if (!_guardBarrack.CanAcceptMoreCitizens) return;
         ResourceManager res = ResourceManager.Instance;
 
         if (!res.TryConsume(ResourceType.Food, 3))
@@ -42,21 +43,8 @@ public class GuardSpawner : MonoBehaviour
             return;
         }
 
-        if (!res.TryConsume(ResourceType.Wood, 1))
-        {
-            FloatingTextManager.Instance.ShowText(
-                "나무가 부족합니다.",
-                _door.position,
-                Color.red,
-                50f,
-                2f
-            );
-            return;
-        }
-
         GuardController guard = GuardPool.Instance.GetGuard();
         guard.SetOriginBase(_guardBarrack);
-        _guardBarrack.OnGuardSpawned();
 
         res.Add(ResourceType.Guard, 1);
         guard.transform.position = _door.position;

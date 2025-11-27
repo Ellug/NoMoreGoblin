@@ -38,7 +38,7 @@ public class CitizenFleeState : CitizenState
 
         // 도착 체크
         float dist = Vector2.Distance(_citizen.transform.position, _citizen.targetPos.Value);
-        if (dist < 1.5f)
+        if (dist < 4f)
         {
             // 시민 입장 처리
             House house = _citizen.originBaseTrf.GetComponent<House>();

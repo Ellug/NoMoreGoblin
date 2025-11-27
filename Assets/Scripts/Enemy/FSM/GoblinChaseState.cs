@@ -22,53 +22,43 @@ public class GoblinChaseState : GoblinState
         // Target 유효성 검사
         if (_goblin.target == null ||
             !_goblin.target.gameObject.activeInHierarchy ||
-            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive)
-        )
+            (_goblin.target.TryGetComponent<IDamageable>(out var t) && !t.IsAlive))
         {
-            _goblin.SetIdleState();
+            if (TryRetarget(out var newTarget))
+                _goblin.target = newTarget;
+            else
+                _goblin.SetIdleState();
+
             return;
         }
-        
 
-        // 이미 다른 고블린에게 납치된 시민 or 도주 성공한 시민 추적 포기
+        // Citizen 예외 처리
         if (_goblin.target.TryGetComponent<CitizenController>(out var citizen))
         {
-            if (citizen.IsInsideHouse)
-            {
-                _goblin.SetIdleState();
-                return;
-            }
-
-            if (citizen.IsKidnapped)
+            if (citizen.IsInsideHouse || citizen.IsKidnapped)
             {
                 _goblin.SetIdleState();
                 return;
             }
         }
 
-        float dist = Vector2.Distance(_goblin.transform.position, _goblin.target.position);
-
-        // 기존 타겟이 어택레인지보다 멀 때
-        if (dist > _goblin.AttackRange)
+        // Collider 기반 거리 계산
+        float dist;
+        if (_goblin.target.TryGetComponent<Collider2D>(out var col))
         {
-            // 1초마다 재탐색 후, dist 보다 가까우면 교체
-            if (TryRetarget(out var newTarget))
-            {
-                float newDist = Vector2.Distance(_goblin.transform.position, newTarget.position);
-
-                if (newDist <= _goblin.AttackRange && newDist < dist)
-                {                    
-                    _goblin.target = newTarget;
-                    _fsm.ChangeState(_goblin.AttackState);
-                    return;
-                }
-            }
+            Vector2 closest = col.ClosestPoint(_goblin.transform.position);
+            dist = Vector2.Distance(_goblin.transform.position, closest);
+        }
+        else
+        {
+            dist = Vector2.Distance(_goblin.transform.position, _goblin.target.position);
         }
 
-        // 공격 사거리 안에 들어오면 공격 or 납치
+
+        // Chase -> Attack 전환 판정 Collider 기준
         if (dist <= _goblin.AttackRange)
         {
-            // 시민이면 납치
+            // Kidnap
             if (_goblin.target.CompareTag("Citizen"))
             {
                 _goblin.KidnapState.SetCitizen(citizen);
@@ -76,23 +66,50 @@ public class GoblinChaseState : GoblinState
                 return;
             }
 
-            // 얘넨 공격
+            // 일반 공격
             if (_goblin.target.CompareTag("Player") ||
                 _goblin.target.CompareTag("Guard") ||
                 _goblin.target.CompareTag("Building"))
-            {                
+            {
                 _fsm.ChangeState(_goblin.AttackState);
                 return;
             }
         }
 
-        // 너무 멀어지면 타겟 포기 -> Idle
+        // Retarget 로직도 Collider 기반으로 검사해야 정확함
+        if (dist > _goblin.AttackRange)
+        {
+            if (TryRetarget(out var newTarget))
+            {
+                float newDist;
+
+                if (newTarget.TryGetComponent<Collider2D>(out var newCol))
+                {
+                    Vector2 newClosest = newCol.ClosestPoint(_goblin.transform.position);
+                    newDist = Vector2.Distance(_goblin.transform.position, newClosest);
+                }
+                else
+                {
+                    newDist = Vector2.Distance(_goblin.transform.position, newTarget.position);
+                }
+
+                if (newDist <= _goblin.AttackRange && newDist < dist)
+                {
+                    _goblin.target = newTarget;
+                    _fsm.ChangeState(_goblin.AttackState);
+                    return;
+                }
+            }
+        }
+
+        // 너무 멀어지면 Idle
         if (dist > _goblin.DetectRange * LoseTargetDistanceMultiplier)
         {
             _goblin.SetIdleState();
             return;
         }
-    }
+}
+
 
     public override void UpdatePhysics()
     {

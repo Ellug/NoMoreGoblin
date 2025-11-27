@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1322595380920040684}
   - component: {fileID: 2141564549665353213}
-  - component: {fileID: 4803767877648389387}
+  - component: {fileID: 7114114458309237754}
   - component: {fileID: -8556141982794620365}
   - component: {fileID: 7730436833534935141}
   - component: {fileID: 8108373385324731240}
@@ -19,7 +19,7 @@ GameObject:
   m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1322595380920040684
 Transform:
@@ -95,8 +95,8 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &4803767877648389387
-BoxCollider2D:
+--- !u!70 &7114114458309237754
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -129,18 +129,9 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 19}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
-    oldSize: {x: 49.8, y: 69.2}
-    newSize: {x: 49.8, y: 69.2}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 41, y: 34}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0, y: 16}
+  m_Size: {x: 36, y: 26}
+  m_Direction: 1
 --- !u!114 &-8556141982794620365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -168,8 +159,8 @@ MonoBehaviour:
   _maxHp: 50
   _curHp: 0
   data: {fileID: 11400000, guid: 812e970cfbb288b488e40b80d0250a4f, type: 2}
-  maxGuardCount: 8
-  currentGuardCount: 0
+  _door: {fileID: 1354245365268443952}
+  maxGuardCount: 4
 --- !u!114 &8108373385324731240
 MonoBehaviour:
   m_ObjectHideFlags: 0

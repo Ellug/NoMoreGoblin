@@ -43,10 +43,7 @@ public class GoblinKidnapState : GoblinState
         // Goblin Base 도착 체크
         if (_goblin.originBaseTrf != null)
         {
-            float dist = Vector2.Distance(
-                _goblin.transform.position,
-                _goblin.originBaseTrf.position
-            );
+            float dist = Vector2.Distance(_goblin.transform.position, _goblin.originBaseTrf.position);
 
             if (dist < 10f)
             {
@@ -73,6 +70,7 @@ public class GoblinKidnapState : GoblinState
         if (_kidnappedCitizen != null)
         {
             _kidnappedCitizen.IsKidnapped = false;
+            _kidnappedCitizen.TakeDamage(100);
             // 후속 처리?            
         }
     }

@@ -18,7 +18,7 @@ public class GoblinBaseManager : MonoBehaviour
     [SerializeField] private GameObject _goblinBasePrefab;
 
     private int _curBaseCount;
-    private List<GoblinBase> _goblinBases = new List<GoblinBase>();
+    private List<GoblinBase> _goblinBases = new();
 
     private void Awake()
     {
@@ -81,8 +81,9 @@ public class GoblinBaseManager : MonoBehaviour
 
     private Vector3 GetRandomWorldPosition(BoundsInt bounds)
     {
-        int x = Random.Range(bounds.xMin, bounds.xMax);
-        int y = Random.Range(bounds.yMin, bounds.yMax);
+        int margin = 20;
+        int x = Random.Range(bounds.xMin + margin, bounds.xMax - margin);
+        int y = Random.Range(bounds.yMin + margin, bounds.yMax - margin);
 
         return _groundTilemap.CellToWorld(new Vector3Int(x, y, 0));
     }
@@ -100,19 +101,29 @@ public class GoblinBaseManager : MonoBehaviour
     // 베이스 파괴 시 호출
     public void OnBaseDestroyed(GoblinBase destroyedBase)
     {
-        // 리스트에서 제거
+        // 기존 리스트에서 제거
         _goblinBases.Remove(destroyedBase);
         _curBaseCount--;
 
-        int enhanceAmount = _baseCount - _curBaseCount;
-
+        // 살아있는 다른 베이스가 있다면
         if (_curBaseCount > 0)
         {
-            // 강화 처리
+            GoblinBase newBase = _goblinBases[Random.Range(0, _goblinBases.Count)];
+
+            // 해당 베이스에 소속된 고블린 모두 재귀속
+            var list = destroyedBase.GetAssignedList();
+            foreach (var g in list)
+            {
+                if (g != null && g.IsAlive)
+                    g.AssignToNewBase(newBase);
+            }
+
+            // 강화 처리 (기존 코드 유지)
+            int enhanceAmount = _baseCount - _curBaseCount;
+
             foreach (var b in _goblinBases)
             {
                 b.maxGoblinCount += 10 * enhanceAmount;
-                b.spawnRadius += 5f;
 
                 var spawner = b.GetComponent<GoblinSpawner>();
                 if (spawner != null)
@@ -124,4 +135,5 @@ public class GoblinBaseManager : MonoBehaviour
             GameManager.Instance.GameWin();
         }
     }
+
 }

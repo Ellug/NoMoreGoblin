@@ -59,10 +59,23 @@ public class GuardPatrolState : GuardState
         if (_guard.originBaseTrf == null)
             return;
 
-        Vector2 offset = Random.insideUnitCircle * _patrolRadius;
-        Vector3 pos = _guard.originBaseTrf.position + (Vector3)offset;
+        Vector3 safePos;
 
-        _guard.target = null;
-        _guard.targetPos = pos;
+        bool found = SafePatrolPoint.TryGetSafePatrolPoint(
+            _guard.originBaseTrf.position,
+            _patrolRadius,
+            out safePos
+        );
+
+        if (found)
+        {
+            _guard.target = null;
+            _guard.targetPos = safePos;
+        }
+        else
+        {
+            // 실패시 Idle
+            _guard.SetIdleState();
+        }
     }
 }

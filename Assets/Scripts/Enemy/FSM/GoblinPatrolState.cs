@@ -56,13 +56,22 @@ public class GoblinPatrolState : GoblinState
 
     private void SetNewPatrolPoint()
     {
-        if (_goblin.originBaseTrf == null)
-            return;
+        if (_goblin.originBaseTrf == null) return;
+        if (_goblin.targetPos != null) return;
 
-        Vector2 offset = Random.insideUnitCircle * _patrolRadius;
-        Vector3 pos = _goblin.originBaseTrf.position + (Vector3)offset;
+        Vector3 safePos;
 
-        _goblin.target = null;
-        _goblin.targetPos = pos;
+        bool found = SafePatrolPoint.TryGetSafePatrolPoint(_goblin.originBaseTrf.position, _patrolRadius, out safePos);
+
+        if (found)
+        {
+            _goblin.target = null;
+            _goblin.targetPos = safePos;
+        }
+        else
+        {
+            // 실패시 Idle
+            _goblin.SetIdleState();
+        }
     }
 }

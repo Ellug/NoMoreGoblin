@@ -60,10 +60,23 @@ public class CitizenPatrolState : CitizenState
         if (_citizen.originBaseTrf == null)
             return;
 
-        Vector2 offset = Random.insideUnitCircle * _patrolRadius;
-        Vector3 pos = _citizen.originBaseTrf.position + (Vector3)offset;
+        Vector3 safePos;
 
-        _citizen.target = null;
-        _citizen.targetPos = pos;
+        bool found = SafePatrolPoint.TryGetSafePatrolPoint(
+            _citizen.originBaseTrf.position,
+            _patrolRadius,
+            out safePos
+        );
+
+        if (found)
+        {
+            _citizen.target = null;
+            _citizen.targetPos = safePos;
+        }
+        else
+        {
+            // 실패시 Idle
+            _citizen.SetIdleState();
+        }
     }
 }

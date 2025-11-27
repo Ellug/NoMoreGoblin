@@ -72,15 +72,16 @@ public class House : BaseBuilding
     {
         StopSafeLoopIfRunning();
 
-        BuildingStructureManager.Instance.UnregisterHouse(this);
+        var copy = new List<CitizenController>(_assignedCitizens);
 
         // 소속 시민 및 내부 시민 전부에게 알림
-        foreach (var c in _assignedCitizens)
+        foreach (var c in copy)
         {
             if (c != null && c.IsAlive)
                 c.OnOriginHouseDestroyed();
         }
 
+        BuildingStructureManager.Instance.UnregisterHouse(this);
         base.Die();
     }
 
@@ -122,7 +123,7 @@ public class House : BaseBuilding
     // 안전 체크 완료 출가
     private void OnHouseSafe()
     {
-        Debug.Log($"House {name} : Safe for 60 sec → Citizens go out.");
+        Debug.Log($"House {name} : Safe for 60 sec -> Citizens go out.");
 
         foreach (var c in _assignedCitizens)
         {
