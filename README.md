@@ -11,16 +11,11 @@ Unity 6 · Android · 개인 프로젝트 · 2025
 
 ---
 
-## 기술 스택
-
 | 분류 | 내용 |
 |------|------|
 | 엔진 | Unity 6 · URP Universal 2D |
 | 언어 | C# |
-| 물리 | Rigidbody2D · Tilemap Collider |
 | UI | UGUI · TextMeshPro |
-| 애니메이션 | Animator · FloatingText |
-| 빌드 대상 | Android (Min SDK 24) |
 
 ---
 
