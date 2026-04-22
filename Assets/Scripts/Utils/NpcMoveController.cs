@@ -29,6 +29,14 @@ public class NpcMoveController
 
     private float _avoidLockTimer = 0;   // 방향 유지 타이머
 
+#if UNITY_EDITOR
+    private static readonly Color DEBUG_TARGET_COLOR = new Color(1f, 0.9f, 0.1f, 1f);
+    private static readonly Color DEBUG_BLOCKED_COLOR = new Color(1f, 0.25f, 0.2f, 1f);
+    private static readonly Color DEBUG_CLEAR_COLOR = new Color(0.1f, 1f, 0.35f, 1f);
+    private static readonly Color DEBUG_PREDICTED_AVOID_COLOR = new Color(0.2f, 0.8f, 1f, 1f);
+    private static readonly Color DEBUG_RUNTIME_AVOID_COLOR = new Color(1f, 0.1f, 1f, 1f);
+#endif
+
     public NpcMoveController(Rigidbody2D rb)
     {
         _rb = rb;
@@ -68,10 +76,6 @@ public class NpcMoveController
 
         Vector2 forward = toTarget.normalized;
         float checkDist = Mathf.Min(CHECK_DIST, Mathf.Max(remainingDist - TARGET_BUFFER, 0f));
-
-#if UNITY_EDITOR
-        Debug.DrawLine(pos, target, Color.yellow);
-#endif
 
         // 회피 방향 락 시간 체크
         if (_avoidLockTimer > 0)
@@ -143,8 +147,7 @@ public class NpcMoveController
         _rb.Slide(finalDir * speed, Time.fixedDeltaTime, _slideMovement);
 
 #if UNITY_EDITOR
-        Debug.DrawRay(pos, forward * checkDist, Color.red);
-        Debug.DrawRay(pos, finalDir * 0.4f, Color.green);
+        DrawAvoidanceDebug(pos, target, forward, finalDir, checkDist);
 #endif
     }
 
@@ -257,4 +260,60 @@ public class NpcMoveController
 
         return false;
     }
+
+#if UNITY_EDITOR
+    private void DrawAvoidanceDebug(Vector2 pos, Vector2 target, Vector2 forward, Vector2 finalDir, float checkDist)
+    {
+        Debug.DrawLine(pos, target, DEBUG_TARGET_COLOR);
+
+        if (checkDist <= 0f)
+            return;
+
+        bool blocked = IsDirectionBlocked(forward, checkDist);
+        Debug.DrawRay(pos, forward * checkDist, blocked ? DEBUG_BLOCKED_COLOR : DEBUG_CLEAR_COLOR);
+
+        float safeCheckDist = Mathf.Max(checkDist, 0.0001f);
+        for (int i = 0; i < DIR_COUNT; i++)
+        {
+            float deltaAngle = -180f + (i * DIR_ANGLE);
+            Vector2 dir = DirectionFromForward(forward, deltaAngle);
+            float clearance = GetClearance(dir, checkDist);
+
+            float openness = Mathf.Clamp01(clearance / safeCheckDist);
+            Color scanColor = Color.Lerp(DEBUG_BLOCKED_COLOR, DEBUG_CLEAR_COLOR, openness);
+            scanColor.a = Mathf.Abs(deltaAngle) <= 90f ? 0.85f : 0.35f;
+
+            Debug.DrawRay(pos, dir * Mathf.Max(clearance, 0.05f), scanColor);
+        }
+
+        Vector2 predictedAvoidDir = FindEscapeDirection(forward, checkDist);
+        if (predictedAvoidDir != Vector2.zero)
+        {
+            Debug.DrawRay(
+                pos,
+                predictedAvoidDir.normalized * Mathf.Max(checkDist * 0.6f, 0.4f),
+                DEBUG_PREDICTED_AVOID_COLOR
+            );
+        }
+
+        if (_isAvoiding && _avoidDir.sqrMagnitude > 0.0001f)
+        {
+            Debug.DrawRay(
+                pos,
+                _avoidDir.normalized * Mathf.Max(checkDist * 0.75f, 0.5f),
+                DEBUG_RUNTIME_AVOID_COLOR
+            );
+        }
+
+        Debug.DrawRay(pos, finalDir * 0.4f, Color.white);
+    }
+
+    private static Vector2 DirectionFromForward(Vector2 forward, float deltaAngle)
+    {
+        float baseAngle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
+        float worldAngle = baseAngle + deltaAngle;
+        float rad = worldAngle * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+    }
+#endif
 }
